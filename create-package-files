@@ -1,0 +1,35 @@
+#!/bin/bash
+# Create CommonJS package.json
+cat >dist/cjs/package.json <<JSON
+{
+    "type": "commonjs",
+    "browser": {
+        "./process/index.js": "./process/browser.js",
+        "./cuid/fingerprint/index.js": "./cuid/fingerprint/browser.js"
+    }
+}
+JSON
+# Write typings to support Node16 module resolution 
+cat >dist/cjs/index.d.ts <<TYPESCRIPT
+export * from '../types/index.js';
+TYPESCRIPT
+# Create ESM package.json
+cat >dist/esm/package.json <<JSON
+{
+    "type": "module",
+    "browser": {
+        "./process/index.js": "./process/browser.js",
+        "./cuid/fingerprint/index.js": "./cuid/fingerprint/browser.js"
+    }
+}
+JSON
+# Write typings to support Node16 module resolution 
+cat >dist/esm/index.d.ts <<TYPESCRIPT
+export * from '../types/index.js';
+TYPESCRIPT
+# Prepend ts-ignore for imported Observable in types
+cat >dist/types/optional-observable.d.ts <<TYPESCRIPT
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: rxjs dependency is optional and only needed when using methods that require them
+TYPESCRIPT
+#

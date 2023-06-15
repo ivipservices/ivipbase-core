@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "lib": ["esnext","dom"],
+        "listEmittedFiles": false,
+        "noImplicitAny": true,
+        "rootDir": "./src",
+        "sourceMap": true,
+        "module": "es2020",
+        "outDir": "./dist/esm",
+        "moduleResolution": "node",
+        "target": "es2020",
+        "pretty": true,
+        "declaration": true,
+        "declarationMap": true,
+        "declarationDir": "./dist/types",
+        "skipLibCheck": false
+    }
+}
