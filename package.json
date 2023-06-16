@@ -1,6 +1,6 @@
 {
     "name": "syncmongo-core",
-    "version": "0.5.0",
+    "version": "0.5.2",
     "description": "Componentes principais compartilhados do SyncMongo, sem necessidade de instalação manual",
     "comments": {
         "browser": "As substituições de arquivo webpack/browserify foram movidas para package.json em dist/cjs e dist/esm. Veja README.md para mais informações",
