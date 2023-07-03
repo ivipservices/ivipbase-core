@@ -48,10 +48,10 @@ export class DataRetrievalOptions {
     allow_cache?: boolean;
 
     /**
-     * Use a cursor to update the local cache with mutations from the server, then load and serve the entire
-     * value from cache. Only works in combination with `cache_mode: "allow"`
+     * Use um cursor para atualizar o cache local com mutações do servidor, então carregue e sirva todo o
+     * valor do cache. Só funciona em combinação com `cache_mode: "allow"`
      *
-     * Requires an `AceBaseClient` with cache db
+     * Requer um `AceBaseClient` com cache db
      */
     cache_cursor?: string;
 
