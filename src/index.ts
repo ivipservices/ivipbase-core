@@ -1,1 +1,3 @@
-console.log('ok');
+export default function run() {
+    console.log("Ok...");
+}

@@ -3,10 +3,7 @@
 cat >dist/cjs/package.json <<JSON
 {
     "type": "commonjs",
-    "browser": {
-        "./process/index.js": "./process/browser.js",
-        "./cuid/fingerprint/index.js": "./cuid/fingerprint/browser.js"
-    }
+    "types": "../types/index.d.ts",
 }
 JSON
 # Write typings to support Node16 module resolution 
@@ -17,10 +14,7 @@ TYPESCRIPT
 cat >dist/esm/package.json <<JSON
 {
     "type": "module",
-    "browser": {
-        "./process/index.js": "./process/browser.js",
-        "./cuid/fingerprint/index.js": "./cuid/fingerprint/browser.js"
-    }
+    "types": "../types/index.d.ts",
 }
 JSON
 # Write typings to support Node16 module resolution 
