@@ -117,4 +117,21 @@ export default abstract class DataBase extends SimpleEventEmitter {
 		const ref = new DataReference(this, path);
 		return new DataReferenceQuery(ref);
 	}
+
+	get schema() {
+		return {
+			get: (path: string) => {
+				return this.storage.getSchema(path);
+			},
+			set: (path: string, schema: Record<string, unknown> | string, warnOnly = false) => {
+				return this.storage.setSchema(path, schema, warnOnly);
+			},
+			all: () => {
+				return this.storage.getSchemas();
+			},
+			check: (path: string, value: unknown, isUpdate: boolean) => {
+				return this.storage.validateSchema(path, value, isUpdate);
+			},
+		};
+	}
 }
