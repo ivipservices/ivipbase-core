@@ -1,69 +1,69 @@
 {
-    "name": "syncmongo-core",
-    "version": "0.5.2",
-    "description": "Componentes principais compartilhados do SyncMongo, sem necessidade de instalação manual",
-    "comments": {
-        "browser": "As substituições de arquivo webpack/browserify foram movidas para package.json em dist/cjs e dist/esm. Veja README.md para mais informações",
-        "exports": "Consulte README.md para obter mais informações sobre distribuições ESM e CommonJS exportadas e usadas"
-    },
-    "main": "dist/cjs/index.js",
-    "module": "./dist/esm/index.js",
-    "types": "./dist/types/index.d.ts",
-    "files": [
-        "dist/"
-    ],
-    "private": false,
-    "repository": "github:ivipcoin/syncmongo-core",
-    "scripts": {
-        "dev": "nodemon ./test/index.ts",
-        "lint": "eslint .",
-        "lint:fix": "eslint . --fix",
-        "build": "npm run build:clean && npm run build:esm && npm run build:cjs && npm run build:packages && echo Done!",
-        "build:clean": "rimraf dist",
-        "build:esm": "tsc -p tsconfig.json && npx tsc-esm-fix ---target='dist/esm'",
-        "build:cjs": "tsc -p tsconfig-cjs.json",
-        "build:packages": "bash ./create-package-files"
-    },
-    "keywords": [
-        "SyncMongo",
-        "mongodb",
-        "db",
-        "realtime",
-        "database",
-        "database",
-        "realtime"
-    ],
-    "author": "IVIPCOIN LTDA <desenvolvimento@ivipcoin.com> (https://ivipcoin.com)",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/ivipcoin/syncmongo-core/issues"
-    },
-    "homepage": "https://github.com/ivipcoin/syncmongo-core#readme",
-    "devDependencies": {
-        "@types/node": "^20.4.8",
-        "@typescript-eslint/eslint-plugin": "^6.2.1",
-        "@typescript-eslint/parser": "^6.2.1",
-        "eslint": "^8.46.0",
-        "esm": "^3.2.25",
-        "nodemon": "^3.0.1",
-        "rimraf": "^5.0.1",
-        "ts-node": "^10.9.1",
-        "tsc-esm-fix": "^2.20.14",
-        "typescript": "^5.1.6"
-    },
-    "nodemonConfig": {
-        "restartable": "rs",
-        "ignore": [],
-        "watch": [
-            "src",
-            "test"
-        ],
-        "delay": 2500,
-        "exec": "node --loader ts-node/esm",
-        "ext": "js,ts"
-    },
-    "dependencies": {
-        "cuid": "^3.0.0",
-        "rxjs": "^7.8.1"
-    }
+	"name": "ivipbase-core",
+	"version": "0.5.2",
+	"description": "Componentes principais compartilhados do iVipBase, sem necessidade de instalação manual",
+	"comments": {
+		"browser": "As substituições de arquivo webpack/browserify foram movidas para package.json em dist/cjs e dist/esm. Veja README.md para mais informações",
+		"exports": "Consulte README.md para obter mais informações sobre distribuições ESM e CommonJS exportadas e usadas"
+	},
+	"main": "dist/cjs/index.js",
+	"module": "./dist/esm/index.js",
+	"types": "./dist/types/index.d.ts",
+	"files": [
+		"dist/"
+	],
+	"private": false,
+	"repository": "github:ivipcoin/ivipbase-core",
+	"scripts": {
+		"dev": "nodemon ./test/index.ts",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"build": "npm run build:clean && npm run build:esm && npm run build:cjs && npm run build:packages && echo Done!",
+		"build:clean": "rimraf dist",
+		"build:esm": "tsc -p tsconfig.json && npx tsc-esm-fix ---target='dist/esm'",
+		"build:cjs": "tsc -p tsconfig-cjs.json",
+		"build:packages": "bash ./create-package-files"
+	},
+	"keywords": [
+		"iVipBase",
+		"mongodb",
+		"db",
+		"realtime",
+		"database",
+		"database",
+		"realtime"
+	],
+	"author": "IVIPCOIN LTDA <desenvolvimento@ivipcoin.com> (https://ivipcoin.com)",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/ivipcoin/ivipbase-core/issues"
+	},
+	"homepage": "https://github.com/ivipcoin/ivipbase-core#readme",
+	"devDependencies": {
+		"@types/node": "^20.4.8",
+		"@typescript-eslint/eslint-plugin": "^6.2.1",
+		"@typescript-eslint/parser": "^6.2.1",
+		"eslint": "^8.46.0",
+		"esm": "^3.2.25",
+		"nodemon": "^3.0.1",
+		"rimraf": "^5.0.1",
+		"ts-node": "^10.9.1",
+		"tsc-esm-fix": "^2.20.14",
+		"typescript": "^5.1.6"
+	},
+	"nodemonConfig": {
+		"restartable": "rs",
+		"ignore": [],
+		"watch": [
+			"src",
+			"test"
+		],
+		"delay": 2500,
+		"exec": "node --loader ts-node/esm",
+		"ext": "js,ts"
+	},
+	"dependencies": {
+		"cuid": "^3.0.0",
+		"rxjs": "^7.8.1"
+	}
 }
