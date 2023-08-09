@@ -93,4 +93,15 @@ export interface ForEachIteratorResult {
     total: number;
     processed: number;
 }
+export interface SimpleCacheOptions {
+    /** The number of seconds to keep items cached after their last update */
+    expirySeconds?: number;
+    /** Whether to deep clone the stored values to protect them from accidental adjustments */
+    cloneValues?: boolean;
+    /** Maximum amount of entries to keep in cache */
+    maxEntries?: number;
+}
+export type Constructable<T> = {
+    new (...args: any[]): T;
+};
 //# sourceMappingURL=index.d.ts.map

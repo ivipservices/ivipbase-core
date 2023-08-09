@@ -93,6 +93,22 @@ class DataBase extends SimpleEventEmitter_1.default {
         const ref = new reference_1.DataReference(this, path);
         return new reference_1.DataReferenceQuery(ref);
     }
+    get schema() {
+        return {
+            get: (path) => {
+                return this.storage.getSchema(path);
+            },
+            set: (path, schema, warnOnly = false) => {
+                return this.storage.setSchema(path, schema, warnOnly);
+            },
+            all: () => {
+                return this.storage.getSchemas();
+            },
+            check: (path, value, isUpdate) => {
+                return this.storage.validateSchema(path, value, isUpdate);
+            },
+        };
+    }
 }
 exports.default = DataBase;
 //# sourceMappingURL=index.js.map
