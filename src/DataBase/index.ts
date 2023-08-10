@@ -39,7 +39,7 @@ export class DataBaseSettings {
 	}
 }
 
-export default abstract class DataBase extends SimpleEventEmitter {
+export abstract class DataBase extends SimpleEventEmitter {
 	protected _ready = false;
 
 	storage!: LocalStorage;
@@ -135,3 +135,5 @@ export default abstract class DataBase extends SimpleEventEmitter {
 		};
 	}
 }
+
+export default DataBase;

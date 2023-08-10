@@ -134,7 +134,7 @@ export interface LiveDataProxyOptions<ValueType> {
 /**
  * Callback function used for creating an Observer
  */
-export type SubscribeFunction<T> = (observer: {
+export type ProxySubscribeFunction<T> = (observer: {
     next: (val: T) => void;
 }) => () => void;
 /**
@@ -233,7 +233,7 @@ export interface ILiveDataProxyValue<ValueType = Record<string, any>> {
      * // Later, don't forget:
      * subscription.unsubscribe();
      */
-    subscribe(): SubscribeFunction<ValueType>;
+    subscribe(): ProxySubscribeFunction<ValueType>;
     /**
      * Returns an RxJS Observable with READ-ONLY values each time a mutation takes place.
      * @returns Returns an Observable.

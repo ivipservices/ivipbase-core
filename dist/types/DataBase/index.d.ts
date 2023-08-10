@@ -21,7 +21,7 @@ export declare class DataBaseSettings {
     info: string;
     constructor(options: Partial<DataBaseSettings>);
 }
-export default abstract class DataBase extends SimpleEventEmitter {
+export declare abstract class DataBase extends SimpleEventEmitter {
     protected _ready: boolean;
     storage: LocalStorage;
     /**
@@ -69,4 +69,5 @@ export default abstract class DataBase extends SimpleEventEmitter {
         }>;
     };
 }
+export default DataBase;
 //# sourceMappingURL=index.d.ts.map

@@ -2,6 +2,16 @@ import type { DataReference } from "src/DataBase/data/reference";
 import type { DataSnapshot } from "src/DataBase/data/snapshot";
 import type { EventStream } from "src/Lib/Subscription";
 import type { ObjectDifferences } from "src/Lib/Utils";
+import { ObjectCollection } from "src/Lib/ObjectCollection";
+export type * as TypeLocalStorage from "./LocalStorage";
+export type * as TypeProxy from "./Proxy";
+export type * as TypeSchema from "./schema";
+export type * as TypeTransport from "./transport";
+/**
+ * Legacy (deprecated) IObjectCollection
+ * @deprecated Use `ObjectCollection` instead
+ */
+export type IObjectCollection<T> = ObjectCollection<T>;
 export type LoggingLevel = "verbose" | "log" | "warn" | "error";
 export type LoggingFunction = (text: string, ...args: any[]) => void;
 export type PathVariables = {

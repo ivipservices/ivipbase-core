@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DataBaseSettings = void 0;
+exports.DataBase = exports.DataBaseSettings = void 0;
 const SimpleEventEmitter_1 = __importDefault(require("src/Lib/SimpleEventEmitter"));
 const reference_1 = require("./data/reference");
 const DebugLogger_1 = __importDefault(require("src/Lib/DebugLogger"));
@@ -110,5 +110,6 @@ class DataBase extends SimpleEventEmitter_1.default {
         };
     }
 }
+exports.DataBase = DataBase;
 exports.default = DataBase;
 //# sourceMappingURL=index.js.map

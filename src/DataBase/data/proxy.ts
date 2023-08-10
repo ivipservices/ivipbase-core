@@ -12,7 +12,7 @@ import {
 	ProxyObserveErrorCallback,
 	ProxyObserveMutation,
 	ProxyObserveMutationsCallback,
-	SubscribeFunction,
+	ProxySubscribeFunction,
 } from "src/Types/Proxy";
 import { DataReference } from "./reference";
 import ID from "src/Lib/ID";
@@ -455,7 +455,7 @@ export class LiveDataProxy {
 			} else if (flag === "onChange") {
 				return addOnChangeHandler(target, args.callback);
 			} else if (flag === "subscribe" || flag === "observe") {
-				const subscribe: SubscribeFunction<any> = (subscriber) => {
+				const subscribe: ProxySubscribeFunction<any> = (subscriber) => {
 					const currentValue = getTargetValue(cache, target);
 					subscriber.next(currentValue);
 					const subscription = addOnChangeHandler(target, (value /*, previous, isRemote, context */) => {
@@ -751,7 +751,7 @@ export class OrderedCollectionProxy<ItemType extends { [KeyName in OrderKeyName]
 			return function unsubscribe() {
 				subscription.unsubscribe();
 			};
-		}) as SubscribeFunction<ItemType[]>);
+		}) as ProxySubscribeFunction<ItemType[]>);
 	}
 
 	/**
