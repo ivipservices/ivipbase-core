@@ -1,9 +1,11 @@
-import type { TCompareResult } from "./../../Types/index";
+import type { TCompareResult, ValueCompareResult } from "./../../Types/index";
 import PathInfo, { PathReference } from "../../Lib/PathInfo";
 import { compareValues, encodeString, isDate } from "../../Lib/Utils";
 import ascii85 from "../../Lib/Ascii85";
 import ID from "../../Lib/ID";
 import { assert } from "../../Lib/Assert";
+import NodeInfo from "./NodeInfo";
+import { NodeAddress } from "./NodeAddress";
 
 export * from "./NodeAddress";
 export * from "./NodeCache";
@@ -15,6 +17,7 @@ export class NodeNotFoundError extends Error {}
 export class NodeRevisionError extends Error {}
 
 const nodeValueTypes = {
+	EMPTY: 0,
 	// Native types:
 	OBJECT: 1,
 	ARRAY: 2,
@@ -26,6 +29,8 @@ const nodeValueTypes = {
 	DATETIME: 6,
 	BINARY: 8,
 	REFERENCE: 9,
+
+	DEDICATED_RECORD: 99,
 } as const;
 
 export type NodeValueType = (typeof nodeValueTypes)[keyof typeof nodeValueTypes];
@@ -51,9 +56,35 @@ export function getValueTypeName(valueType: number) {
 			return "string";
 		case VALUE_TYPES.BIGINT:
 			return "bigint";
-		// case VALUE_TYPES.DOCUMENT: return 'document';
+		case VALUE_TYPES.DEDICATED_RECORD:
+			return "dedicated_record";
 		default:
 			"unknown";
+	}
+}
+
+function getValueTypeDefault(valueType: number) {
+	switch (valueType) {
+		case VALUE_TYPES.ARRAY:
+			return [];
+		case VALUE_TYPES.OBJECT:
+			return {};
+		case VALUE_TYPES.NUMBER:
+			return 0;
+		case VALUE_TYPES.BOOLEAN:
+			return false;
+		case VALUE_TYPES.STRING:
+			return "";
+		case VALUE_TYPES.BIGINT:
+			return BigInt(0);
+		case VALUE_TYPES.DATETIME:
+			return new Date().toISOString();
+		case VALUE_TYPES.BINARY:
+			return new Uint8Array();
+		case VALUE_TYPES.REFERENCE:
+			return null;
+		default:
+			return undefined; // Or any other default value you prefer
 	}
 }
 
@@ -75,7 +106,7 @@ export function getNodeValueType(value: unknown) {
 	} else if (typeof value === "bigint") {
 		return VALUE_TYPES.BIGINT;
 	}
-	throw new Error(`Invalid value for standalone node: ${value}`);
+	return 0;
 }
 
 export function getValueType(value: unknown) {
@@ -100,7 +131,7 @@ export function getValueType(value: unknown) {
 	} else if (typeof value === "bigint") {
 		return VALUE_TYPES.BIGINT;
 	}
-	throw new Error(`Unknown value type: ${value}`);
+	return 0;
 }
 
 export class NodeSettings {
@@ -124,6 +155,22 @@ export class NodeSettings {
 		if (typeof options.removeVoidProperties === "boolean") {
 			this.removeVoidProperties = options.removeVoidProperties;
 		}
+	}
+}
+
+export class CustomStorageNodeInfo extends NodeInfo {
+	address?: NodeAddress;
+	revision: string;
+	revision_nr: number;
+	created: Date;
+	modified: Date;
+
+	constructor(info: Omit<CustomStorageNodeInfo, "valueType" | "valueTypeName">) {
+		super(info);
+		this.revision = info.revision;
+		this.revision_nr = info.revision_nr;
+		this.created = info.created;
+		this.modified = info.modified;
 	}
 }
 
@@ -157,9 +204,40 @@ export interface StorageNodeInfo {
 
 export default class Node {
 	readonly settings: NodeSettings;
+	private nodes: StorageNodeInfo[] = [];
 
-	constructor(options: Partial<NodeSettings> = {}) {
+	constructor(byNodes: StorageNodeInfo[] = [], options: Partial<NodeSettings> = {}) {
 		this.settings = new NodeSettings(options);
+		this.push(byNodes);
+
+		if (this.isPathExists("") !== true) {
+			this.writeNode("", {});
+		}
+	}
+
+	isPathExists(path: string): boolean {
+		const pathInfo = PathInfo.get(path);
+		return (
+			this.nodes.findIndex(({ path: nodePath }) => {
+				return pathInfo.isOnTrailOf(nodePath);
+			}) >= 0
+		);
+	}
+
+	push(...nodes: (StorageNodeInfo[] | StorageNodeInfo)[]) {
+		const forNodes: StorageNodeInfo[] =
+			Array.prototype.concat
+				.apply(
+					[],
+					nodes.map((node) => (Array.isArray(node) ? node : [node])),
+				)
+				.filter((node: any = {}) => node && typeof node.path === "string" && "content" in node) ?? [];
+
+		for (let node of forNodes) {
+			this.nodes.push(node);
+		}
+
+		return this;
 	}
 
 	static get VALUE_TYPES() {
@@ -211,13 +289,13 @@ export default class Node {
 		} else if (val instanceof ArrayBuffer) {
 			return { type: VALUE_TYPES.BINARY, value: ascii85.encode(val) };
 		} else if (typeof val === "object") {
-			assert(Object.keys(val).length === 0, "child object stored in parent can only be empty");
+			assert(Object.keys(val).length === 0 || ("type" in val && val.type === VALUE_TYPES.DEDICATED_RECORD), "child object stored in parent can only be empty");
 			return val;
 		}
 	}
 
 	private processReadNodeValue(node: StorageNode): StorageNode {
-		const getTypedChildValue = (val: { type: number; value: any }) => {
+		const getTypedChildValue = (val: { type: number; value: any; path?: string }) => {
 			// Typed value stored in parent record
 			if (val.type === VALUE_TYPES.BINARY) {
 				// binary stored in a parent record as a string
@@ -228,10 +306,14 @@ export default class Node {
 			} else if (val.type === VALUE_TYPES.REFERENCE) {
 				// Path reference stored as string
 				return new PathReference(val.value);
+			} else if (val.type === VALUE_TYPES.DEDICATED_RECORD) {
+				return getValueTypeDefault(val.value);
 			} else {
 				throw new Error(`Unhandled child value type ${val.type}`);
 			}
 		};
+
+		node = JSON.parse(JSON.stringify(node));
 
 		switch (node.type) {
 			case VALUE_TYPES.ARRAY:
@@ -272,11 +354,188 @@ export default class Node {
 		return node;
 	}
 
-	parse(path: string, value: any): StorageNodeInfo[] {
-		if (this.valueFitsInline(value) && path !== "") {
+	getNodesBy(path: string): StorageNodeInfo[] {
+		const pathInfo = PathInfo.get(path);
+		return this.nodes.filter((node) => {
+			const nodePath = PathInfo.get(node.path);
+			return nodePath.path == pathInfo.path || pathInfo.isAncestorOf(nodePath);
+		});
+	}
+
+	getNodeParentBy(path: string): StorageNodeInfo | undefined {
+		const pathInfo = PathInfo.get(path);
+		return this.nodes
+			.filter((node) => {
+				const nodePath = PathInfo.get(node.path);
+				return nodePath.path === "" || pathInfo.path === nodePath.path || nodePath.isParentOf(pathInfo);
+			})
+			.sort((a: StorageNodeInfo, b: StorageNodeInfo): number => {
+				const pathA = PathInfo.get(a.path);
+				const pathB = PathInfo.get(b.path);
+				return pathA.isDescendantOf(pathB.path) ? -1 : pathB.isDescendantOf(pathA.path) ? 1 : 0;
+			})
+			.shift();
+	}
+
+	getKeysBy(path: string): string[] {
+		const pathInfo = PathInfo.get(path);
+		return this.nodes
+			.filter((node) => pathInfo.isParentOf(node.path))
+			.map((node) => {
+				const key = PathInfo.get(node.path).key;
+				return key ? key.toString() : null;
+			})
+			.filter((keys) => typeof keys === "string") as string[];
+	}
+
+	getInfoBy(
+		path: string,
+		options: {
+			include_child_count?: boolean;
+		} = {},
+	): CustomStorageNodeInfo {
+		const pathInfo = PathInfo.get(path);
+		const node = this.getNodeParentBy(pathInfo.path);
+
+		const defaultNode = new CustomStorageNodeInfo({
+			path: pathInfo.path,
+			key: typeof pathInfo.key === "string" ? pathInfo.key : undefined,
+			index: typeof pathInfo.key === "number" ? pathInfo.key : undefined,
+			type: 0 as NodeValueType,
+			exists: false,
+			address: undefined,
+			created: new Date(),
+			modified: new Date(),
+			revision: "",
+			revision_nr: 0,
+		});
+
+		if (!node) {
+			return defaultNode;
+		}
+
+		const content = this.processReadNodeValue(node.content);
+		let value = content.value;
+
+		if (node.path !== pathInfo.path) {
+			const keys = [pathInfo.key];
+			let currentPath = pathInfo.parent;
+
+			while (currentPath instanceof PathInfo && currentPath.path !== node.path) {
+				if (currentPath.key !== null) keys.unshift(currentPath.key);
+				currentPath = currentPath.parent;
+			}
+
+			keys.forEach((key, index) => {
+				if (value === null) {
+					return;
+				}
+
+				if (key !== null && [VALUE_TYPES.OBJECT, VALUE_TYPES.ARRAY].includes(getValueType(value)) && key in value) {
+					value = value[key];
+					return;
+				}
+
+				value = null;
+			});
+		}
+
+		const containsChild = this.nodes.findIndex(({ path }) => pathInfo.isAncestorOf(path)) >= 0;
+		const isArrayChild = (() => {
+			const child = this.nodes.find(({ path }) => pathInfo.isParentOf(path));
+			return child ? typeof PathInfo.get(child.path).key === "number" : false;
+		})();
+
+		const info = new CustomStorageNodeInfo({
+			path: pathInfo.path,
+			key: typeof pathInfo.key === "string" ? pathInfo.key : undefined,
+			index: typeof pathInfo.key === "number" ? pathInfo.key : undefined,
+			type: value !== null ? getValueType(value) : containsChild ? (isArrayChild ? VALUE_TYPES.ARRAY : VALUE_TYPES.OBJECT) : (0 as NodeValueType),
+			exists: value !== null || containsChild,
+			address: new NodeAddress(node.path),
+			created: new Date(content.created) ?? new Date(),
+			modified: new Date(content.modified) ?? new Date(),
+			revision: content.revision ?? "",
+			revision_nr: content.revision_nr ?? 0,
+		});
+
+		const prepareValue = (value) => {
+			return [VALUE_TYPES.OBJECT, VALUE_TYPES.ARRAY].includes(getValueType(value))
+				? Object.keys(value).reduce((result, key) => {
+						result[key] = this.getTypedChildValue(value[key]);
+						return result;
+				  }, {})
+				: this.getTypedChildValue(value);
+		};
+
+		info.value = value ? prepareValue(value) : [VALUE_TYPES.OBJECT, VALUE_TYPES.ARRAY].includes(info.type as any) ? (info.type === VALUE_TYPES.ARRAY ? [] : {}) : null;
+
+		if (options.include_child_count && containsChild) {
+			info.childCount = 0;
+			if ([VALUE_TYPES.OBJECT, VALUE_TYPES.ARRAY].includes(info.valueType as any) && info.address) {
+				// Get number of children
+				info.childCount = value ? Object.keys(value ?? {}).length : 0;
+				info.childCount += this.nodes
+					.filter(({ path }) => pathInfo.isAncestorOf(path))
+					.map(({ path }) => PathInfo.get(path.replace(new RegExp(`^${pathInfo.path}`), "")).keys[1] ?? "")
+					.filter((path, index, list) => {
+						return list.indexOf(path) === index;
+					}).length;
+
+				// .reduce((count, { path }) => {
+				// 	const outherPath = `${pathInfo.path}/` + (PathInfo.get(path.replace(new RegExp(`^${pathInfo.path}`), "")).keys[1] ?? "");
+				// 	console.log(outherPath);
+				// 	return count + (pathInfo.isAncestorOf(path) ? 1 : 0);
+				// }, 0);
+			}
+		}
+
+		return info;
+	}
+
+	writeNode(
+		path: string,
+		value: any,
+		options: {
+			merge?: boolean;
+			revision?: string;
+			currentValue?: any;
+			diff?: ValueCompareResult;
+		} = {},
+	): Node {
+		if (!options.merge && this.valueFitsInline(value) && path !== "") {
 			throw new Error(`invalid value to store in its own node`);
 		} else if (path === "" && (typeof value !== "object" || value instanceof Array)) {
 			throw new Error(`Invalid root node value. Must be an object`);
+		}
+
+		//options.currentValue = options.currentValue ?? this.toJson(path);
+
+		// Check if the value for this node changed, to prevent recursive calls to
+		// perform unnecessary writes that do not change any data
+		if (typeof options.diff === "undefined" && typeof options.currentValue !== "undefined") {
+			options.diff = compareValues(options.currentValue, value);
+			if (options.merge && typeof options.diff === "object") {
+				options.diff.removed = options.diff.removed.filter((key) => value[key] === null); // Only keep "removed" items that are really being removed by setting to null
+			}
+		}
+
+		if (options.diff === "identical") {
+			return this; // Done!
+		}
+
+		//const currentRow = options.currentValue.content;
+
+		// Get info about current node at path
+		const currentRow = options.currentValue === null ? null : this.toJson(path).content;
+
+		if (options.merge && currentRow) {
+			if (currentRow.type === VALUE_TYPES.ARRAY && !(value instanceof Array) && typeof value === "object" && Object.keys(value).some((key) => isNaN(parseInt(key)))) {
+				throw new Error(`Cannot merge existing array of path "${path}" with an object`);
+			}
+			if (value instanceof Array && currentRow.type !== VALUE_TYPES.ARRAY) {
+				throw new Error(`Cannot merge existing object of path "${path}" with an array`);
+			}
 		}
 
 		const pathInfo = PathInfo.get(path);
@@ -284,7 +543,7 @@ export default class Node {
 		const revision = ID.generate();
 
 		const mainNode = {
-			type: value instanceof Array ? VALUE_TYPES.ARRAY : VALUE_TYPES.OBJECT,
+			type: currentRow && currentRow.type === VALUE_TYPES.ARRAY ? VALUE_TYPES.ARRAY : VALUE_TYPES.OBJECT,
 			value: {} as Record<string, any> | string,
 		};
 
@@ -309,9 +568,34 @@ export default class Node {
 			mainNode.value = value;
 		}
 
-		const isObjectOrArray = [VALUE_TYPES.OBJECT, VALUE_TYPES.ARRAY].includes(mainNode.type);
+		const currentIsObjectOrArray = currentRow ? [VALUE_TYPES.OBJECT, VALUE_TYPES.ARRAY].includes(currentRow.type) : false;
+		const newIsObjectOrArray = [VALUE_TYPES.OBJECT, VALUE_TYPES.ARRAY].includes(mainNode.type);
 
-		if (isObjectOrArray) {
+		const children = {
+			current: [] as string[],
+			new: [] as string[],
+		};
+
+		const isArray = mainNode.type === VALUE_TYPES.ARRAY;
+
+		let currentObject = null;
+		if (currentIsObjectOrArray) {
+			currentObject = currentRow?.value;
+			children.current = Object.keys(currentObject ?? {});
+			// if (currentObject instanceof Array) { // ALWAYS FALSE BECAUSE THEY ARE STORED AS OBJECTS WITH NUMERIC PROPERTIES
+			//     // Convert array to object with numeric properties
+			//     const obj = {};
+			//     for (let i = 0; i < value.length; i++) {
+			//         obj[i] = value[i];
+			//     }
+			//     currentObject = obj;
+			// }
+			if (newIsObjectOrArray) {
+				(mainNode.value as any) = currentObject;
+			}
+		}
+
+		if (newIsObjectOrArray) {
 			Object.keys(value).forEach((key) => {
 				const val = value[key];
 				delete (mainNode.value as Record<string, any>)[key]; // key is being overwritten, moved from inline to dedicated, or deleted. TODO: check if this needs to be done SQLite & MSSQL implementations too
@@ -332,6 +616,11 @@ export default class Node {
 					// Store in main node
 					(mainNode.value as Record<string, any>)[key] = val;
 				} else {
+					// (mainNode.value as Record<string, any>)[key] = {
+					// 	type: VALUE_TYPES.DEDICATED_RECORD,
+					// 	value: getNodeValueType(val),
+					// 	path: pathInfo.childPath(isArray ? parseInt(key) : key),
+					// };
 					// Store in child node
 					childNodeValues[key] = val;
 				}
@@ -345,51 +634,163 @@ export default class Node {
 			});
 		}
 
-		const isArray = mainNode.type === VALUE_TYPES.ARRAY;
+		if (currentRow) {
+			if (currentIsObjectOrArray || newIsObjectOrArray) {
+				const keys: string[] = this.getKeysBy(pathInfo.path);
 
-		const nodes: StorageNodeInfo[] = Array.prototype.concat.apply(
-			[],
-			Object.keys(childNodeValues).map((key) => {
+				children.current = children.current.concat(keys);
+				if (newIsObjectOrArray) {
+					if (options && options.merge) {
+						children.new = children.current.slice();
+					}
+					Object.keys(value).forEach((key) => {
+						if (!children.new.includes(key)) {
+							children.new.push(key);
+						}
+					});
+				}
+
+				const changes = {
+					insert: children.new.filter((key) => !children.current.includes(key)),
+					update: [] as string[],
+					delete: options && options.merge ? Object.keys(value).filter((key) => value[key] === null) : children.current.filter((key) => !children.new.includes(key)),
+				};
+				changes.update = children.new.filter((key) => children.current.includes(key) && !changes.delete.includes(key));
+
+				if (isArray && options.merge && (changes.insert.length > 0 || changes.delete.length > 0)) {
+					// deletes or inserts of individual array entries are not allowed, unless it is the last entry:
+					// - deletes would cause the paths of following items to change, which is unwanted because the actual data does not change,
+					// eg: removing index 3 on array of size 10 causes entries with index 4 to 9 to 'move' to indexes 3 to 8
+					// - inserts might introduce gaps in indexes,
+					// eg: adding to index 7 on an array of size 3 causes entries with indexes 3 to 6 to go 'missing'
+					const newArrayKeys = changes.update.concat(changes.insert);
+					const isExhaustive = newArrayKeys.every((k, index, arr) => arr.includes(index.toString()));
+					if (!isExhaustive) {
+						throw new Error(
+							`Elements cannot be inserted beyond, or removed before the end of an array. Rewrite the whole array at path "${path}" or change your schema to use an object collection instead`,
+						);
+					}
+				}
+
+				for (let key in childNodeValues) {
+					const keyOrIndex = isArray ? parseInt(key) : key;
+					const childDiff = typeof options.diff === "object" ? options.diff.forChild(keyOrIndex) : undefined;
+					if (childDiff === "identical") {
+						continue;
+					}
+
+					const childPath = pathInfo.childPath(keyOrIndex);
+					const childValue = childNodeValues[keyOrIndex];
+
+					// Pass current child value to _writeNode
+					const currentChildValue =
+						typeof options.currentValue === "undefined" // Fixing issue #20
+							? undefined
+							: options.currentValue !== null && typeof options.currentValue === "object" && keyOrIndex in options.currentValue
+							? options.currentValue[keyOrIndex]
+							: null;
+
+					this.writeNode(childPath, childValue, {
+						revision,
+						merge: false,
+						currentValue: currentChildValue,
+						diff: childDiff,
+					});
+				}
+
+				// Delete all child nodes that were stored in their own record, but are being removed
+				// Also delete nodes that are being moved from a dedicated record to inline
+				const movingNodes = newIsObjectOrArray ? keys.filter((key) => key in (mainNode.value as Record<string, any>)) : []; // moving from dedicated to inline value
+				const deleteDedicatedKeys = changes.delete.concat(movingNodes);
+
+				for (let key of deleteDedicatedKeys) {
+					const keyOrIndex = isArray ? parseInt(key) : key;
+					const childPath = pathInfo.childPath(keyOrIndex);
+					this.deleteNode(childPath);
+				}
+			}
+
+			this.nodes.push({
+				path: pathInfo.path,
+				content: {
+					type: mainNode.type,
+					value: mainNode.value,
+					revision: currentRow.revision,
+					revision_nr: currentRow.revision_nr + 1,
+					created: currentRow.created,
+					modified: Date.now(),
+				},
+			});
+		} else {
+			for (let key in childNodeValues) {
 				const keyOrIndex = isArray ? parseInt(key) : key;
 				const childPath = pathInfo.childPath(keyOrIndex);
 				const childValue = childNodeValues[keyOrIndex];
-				return this.parse(childPath, childValue) ?? [];
-			}),
-		);
 
-		nodes.push({
-			path: pathInfo.path,
+				this.writeNode(childPath, childValue, {
+					revision,
+					merge: false,
+					currentValue: null,
+				});
+			}
+
+			this.nodes.push({
+				path: pathInfo.path,
+				content: {
+					type: mainNode.type,
+					value: mainNode.value,
+					revision: revision,
+					revision_nr: 1,
+					created: Date.now(),
+					modified: Date.now(),
+				},
+			});
+		}
+
+		return this;
+	}
+
+	deleteNode(path: string): Node {
+		const pathInfo = PathInfo.get(path);
+		this.nodes = this.nodes.filter(({ path }) => {
+			return !pathInfo.isAncestorOf(path);
+		});
+
+		return this;
+	}
+
+	static parse(path: string, value: any, options: Partial<NodeSettings> = {}): StorageNodeInfo[] {
+		return new Node([], options).writeNode(path, value).getNodesBy(path);
+	}
+
+	toJson(nodes?: StorageNodeInfo[] | string): StorageNodeInfo {
+		const byPathRoot: string | undefined = typeof nodes === "string" ? nodes : undefined;
+
+		nodes = typeof nodes === "string" ? this.getNodesBy(nodes) : Array.isArray(nodes) ? nodes : ([nodes] as any);
+		nodes = Array.isArray(nodes) ? nodes.filter((node: any = {}) => node && typeof node.path === "string" && "content" in node) : this.nodes;
+
+		const byNodes = nodes.map((node) => {
+			node = JSON.parse(JSON.stringify(node));
+			node.content = this.processReadNodeValue(node.content);
+			return node;
+		}) as StorageNodeInfo[];
+
+		let revision = (byNodes[0]?.content ?? {}).revision ?? ID.generate();
+
+		const rootNode: StorageNodeInfo = {
+			path: PathInfo.get(byPathRoot ?? "").path,
 			content: {
-				type: mainNode.type,
-				value: mainNode.value,
+				type: 1,
+				value: {},
 				revision: revision,
 				revision_nr: 1,
 				created: Date.now(),
 				modified: Date.now(),
 			},
-		});
-
-		return nodes;
-	}
-
-	static parse(path: string, value: any, options: Partial<NodeSettings> = {}): StorageNodeInfo[] {
-		return new Node(options).parse(path, value);
-	}
-
-	toJson(...nodes: (StorageNodeInfo[] | StorageNodeInfo)[]): StorageNodeInfo {
-		const byNodes = Array.prototype.concat
-			.apply(
-				[],
-				nodes.map((node) => (Array.isArray(node) ? node : [node])),
-			)
-			.filter((node: any = {}) => node && typeof node.path === "string" && "content" in node)
-			.map((node) => {
-				node.content = this.processReadNodeValue(node.content);
-				return node;
-			}) as StorageNodeInfo[];
+		};
 
 		if (byNodes.length === 0) {
-			throw new Error(`invalid nodes for conversion`);
+			return rootNode;
 		}
 
 		byNodes.sort((a: StorageNodeInfo, b: StorageNodeInfo): number => {
@@ -397,6 +798,19 @@ export default class Node {
 			const pathB = PathInfo.get(b.path);
 			return pathA.isDescendantOf(pathB.path) ? 1 : pathB.isDescendantOf(pathA.path) ? -1 : 0;
 		});
+
+		if (byPathRoot) {
+			const pathRoot = PathInfo.get(byPathRoot);
+			const rootExists = byNodes.findIndex(({ path }) => pathRoot.path === path) >= 0;
+
+			if (!rootExists) {
+				rootNode.content.revision = byNodes[0]?.content.revision ?? revision;
+				rootNode.content.revision_nr = byNodes[0]?.content.revision_nr ?? 1;
+				rootNode.content.created = byNodes[0]?.content.created ?? Date.now();
+				rootNode.content.modified = byNodes[0]?.content.modified ?? Date.now();
+				byNodes.unshift(rootNode);
+			}
+		}
 
 		const { path, content: targetNode } = byNodes.shift() as StorageNodeInfo;
 
@@ -443,16 +857,16 @@ export default class Node {
 						}
 					}
 
-					if (key in parent) {
-						const mergePossible = typeof parent[key] === typeof nodeValue && [VALUE_TYPES.OBJECT, VALUE_TYPES.ARRAY].includes(nodeType);
-						if (mergePossible) {
-							Object.keys(nodeValue).forEach((childKey) => {
-								parent[key][childKey] = nodeValue[childKey];
-							});
-						}
+					const mergePossible = key in parent && typeof parent[key] === typeof nodeValue && [VALUE_TYPES.OBJECT, VALUE_TYPES.ARRAY].includes(nodeType);
+
+					if (mergePossible) {
+						Object.keys(nodeValue).forEach((childKey) => {
+							parent[key][childKey] = nodeValue[childKey];
+						});
 					} else {
 						parent[key] = nodeValue;
 					}
+
 					parent = parent[key];
 				}
 			}
@@ -464,7 +878,7 @@ export default class Node {
 		};
 	}
 
-	static toJson(nodes: StorageNodeInfo[] | StorageNodeInfo, options: Partial<NodeSettings> = {}): StorageNodeInfo {
-		return new Node(options).toJson(nodes);
+	static toJson(nodes: StorageNodeInfo[], options: Partial<NodeSettings> = {}): StorageNodeInfo {
+		return new Node([], options).toJson(nodes);
 	}
 }
