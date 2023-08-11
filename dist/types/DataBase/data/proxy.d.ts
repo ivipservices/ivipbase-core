@@ -1,7 +1,7 @@
-import { ILiveDataProxy, ILiveDataProxyValue, LiveDataProxyOptions } from "src/Types/Proxy";
+import { ILiveDataProxy, ILiveDataProxyValue, LiveDataProxyOptions } from "../../Types/Proxy";
 import { DataReference } from "./reference";
-import { IObservableLike } from "src/Types";
-import type { ObjectCollection } from "src/Lib/ObjectCollection";
+import { IObservableLike } from "../../Types";
+import type { ObjectCollection } from "../../Lib/ObjectCollection";
 export declare function proxyAccess<ValueType>(proxiedValue: ValueType): ILiveDataProxyValue<ValueType>;
 export declare class LiveDataProxy {
     /**

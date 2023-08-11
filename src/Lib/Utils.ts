@@ -1,5 +1,5 @@
-import { DataSnapshot } from "src/DataBase/data/snapshot";
-import { Constructable, ObjectProperty, TypedArray, TypedArrayLike, ValueCompareResult } from "src/Types";
+import { DataSnapshot } from "../DataBase/data/snapshot";
+import { Constructable, ObjectProperty, TypedArray, TypedArrayLike, ValueCompareResult } from "../Types";
 import { PathReference } from "./PathInfo";
 import { PartialArray } from "./PartialArray";
 
@@ -342,6 +342,10 @@ export class ObjectDifferences {
 	}
 }
 
+export const isDate = function (value: unknown) {
+	return value instanceof Date || (typeof value === "string" && !isNaN(Date.parse(value)));
+};
+
 export function compareValues(oldVal: any, newVal: any, sortedResults = false): ValueCompareResult {
 	const voids = [undefined, null] as [undefined, null];
 	if (oldVal === newVal) {
@@ -371,8 +375,8 @@ export function compareValues(oldVal: any, newVal: any, sortedResults = false): 
 				? new Uint8Array(newVal)
 				: new Uint8Array((newVal as TypedArray).buffer, (newVal as TypedArray).byteOffset, (newVal as TypedArray).byteLength);
 		return typed1.byteLength === typed2.byteLength && typed1.every((val, i) => typed2[i] === val) ? "identical" : "changed";
-	} else if (oldVal instanceof Date || newVal instanceof Date) {
-		return oldVal instanceof Date && newVal instanceof Date && oldVal.getTime() === newVal.getTime() ? "identical" : "changed";
+	} else if (isDate(oldVal) || isDate(newVal)) {
+		return isDate(oldVal) && isDate(newVal) && new Date(oldVal).getTime() === new Date(newVal).getTime() ? "identical" : "changed";
 	} else if (oldVal instanceof PathReference || newVal instanceof PathReference) {
 		return oldVal instanceof PathReference && newVal instanceof PathReference && oldVal.path === newVal.path ? "identical" : "changed";
 	} else if (typeof oldVal === "object") {

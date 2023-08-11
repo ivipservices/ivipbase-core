@@ -13,16 +13,16 @@ import {
 	ProxyObserveMutation,
 	ProxyObserveMutationsCallback,
 	ProxySubscribeFunction,
-} from "src/Types/Proxy";
+} from "../../Types/Proxy";
 import { DataReference } from "./reference";
-import ID from "src/Lib/ID";
-import SimpleEventEmitter from "src/Lib/SimpleEventEmitter";
+import ID from "../../Lib/ID";
+import SimpleEventEmitter from "../../Lib/SimpleEventEmitter";
 import { DataSnapshot, IDataMutationsArray, MutationsDataSnapshot } from "./snapshot";
-import { cloneObject, getMutations, valuesAreEqual } from "src/Lib/Utils";
-import PathInfo, { PathReference } from "src/Lib/PathInfo";
-import { getObservable } from "src/Lib/OptionalObservable";
-import { IObservableLike } from "src/Types";
-import type { ObjectCollection } from "src/Lib/ObjectCollection";
+import { cloneObject, getMutations, valuesAreEqual } from "../../Lib/Utils";
+import PathInfo, { PathReference } from "../../Lib/PathInfo";
+import { getObservable } from "../../Lib/OptionalObservable";
+import { IObservableLike } from "../../Types";
+import type { ObjectCollection } from "../../Lib/ObjectCollection";
 
 class RelativeNodeTarget extends Array<number | string> {
 	static areEqual(t1: RelativeNodeTarget, t2: RelativeNodeTarget) {

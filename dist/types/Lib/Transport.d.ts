@@ -1,4 +1,4 @@
-import { SerializedValue, V2SerializedValue } from "src/Types/transport";
+import { SerializedValue, V2SerializedValue } from "../Types/transport";
 /**
  * Original deserialization method using global `map` and `val` properties
  * @param data

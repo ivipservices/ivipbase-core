@@ -1,4 +1,4 @@
-import { CleanupFunction, CreateFunction, IObservableLike, IObserver, ISubscription, SubscribeFunction } from "src/Types";
+import { CleanupFunction, CreateFunction, IObservableLike, IObserver, ISubscription, SubscribeFunction } from "../Types";
 
 /**
  * rxjs is an optional dependency that only needs installing when any of AceBase's observe methods are used.

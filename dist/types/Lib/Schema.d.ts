@@ -1,4 +1,4 @@
-import { ISchemaCheckResult, IType } from "src/Types/schema";
+import { ISchemaCheckResult, IType } from "../Types/schema";
 export declare class SchemaDefinition {
     readonly handling: {
         warnOnly: boolean;

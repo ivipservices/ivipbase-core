@@ -1,7 +1,7 @@
-import { EventPublisher, EventStream } from "src/Lib/Subscription";
+import { EventPublisher, EventStream } from "../../Lib/Subscription";
 import { DataSnapshot, MutationsDataSnapshot } from "./snapshot";
 import DataBase from "..";
-import PathInfo from "src/Lib/PathInfo";
+import PathInfo from "../../Lib/PathInfo";
 import {
 	EventCallback,
 	EventSettings,
@@ -11,16 +11,22 @@ import {
 	IStreamLike,
 	NotifyEvent,
 	PathVariables,
+	QueryHintsEventCallback,
+	QueryOperator,
+	QueryRemoveResult,
+	QueryStatsEventCallback,
+	RealtimeQueryEvent,
+	RealtimeQueryEventCallback,
 	StreamReadFunction,
 	StreamWriteFunction,
 	SubscribeFunction,
 	ValueEvent,
-} from "src/Types";
-import ID from "src/Lib/ID";
-import { ReflectionNodeInfo, ReflectionType, ValueChange, ValueMutation } from "src/Types/LocalStorage";
-import { ILiveDataProxy, LiveDataProxyOptions } from "src/Types/Proxy";
+} from "../../Types";
+import ID from "../../Lib/ID";
+import { QueryFilter, QueryOptions, QueryOrder, ReflectionNodeInfo, ReflectionType, ValueChange, ValueMutation } from "../../Types/LocalStorage";
+import { ILiveDataProxy, LiveDataProxyOptions } from "../../Types/Proxy";
 import { LiveDataProxy } from "./proxy";
-import { getObservable, type Observable } from "src/Lib/OptionalObservable";
+import { getObservable, type Observable } from "../../Lib/OptionalObservable";
 
 export class DataRetrievalOptions {
 	/**
@@ -1144,6 +1150,476 @@ export class DataReference<T = any> {
 	}
 }
 
+export class QueryDataRetrievalOptions extends DataRetrievalOptions {
+	/**
+	 * Whether to return snapshots of matched nodes (include data), or references only (no data). Default is `true`
+	 * @default true
+	 */
+	snapshots?: boolean;
+
+	/**
+	 * @param options Options for data retrieval, allows selective loading of object properties
+	 */
+	constructor(options: QueryDataRetrievalOptions) {
+		super(options);
+		if (!["undefined", "boolean"].includes(typeof options.snapshots)) {
+			throw new TypeError("options.snapshots must be a boolean");
+		}
+		this.snapshots = typeof options.snapshots === "boolean" ? options.snapshots : true;
+	}
+}
+
+export class DataSnapshotsArray<T = any> extends Array<DataSnapshot<T>> {
+	static from<T = any>(snaps: DataSnapshot<T>[]) {
+		const arr = new DataSnapshotsArray<T>(snaps.length);
+		snaps.forEach((snap, i) => (arr[i] = snap));
+		return arr;
+	}
+	getValues() {
+		return this.map((snap) => snap.val());
+	}
+}
+
+export class DataReferencesArray<T = any> extends Array<DataReference<T>> {
+	static from<T = any>(refs: DataReference<T>[]) {
+		const arr = new DataReferencesArray<T>(refs.length);
+		refs.forEach((ref, i) => (arr[i] = ref));
+		return arr;
+	}
+	getPaths() {
+		return this.map((ref) => ref.path);
+	}
+}
+
 export class DataReferenceQuery {
-	constructor(ref: DataReference) {}
+	private [_private]: {
+		filters: QueryFilter[];
+		skip: number;
+		take: number;
+		order: QueryOrder[];
+		events: { [name: string]: RealtimeQueryEventCallback[] };
+	};
+	ref: DataReference;
+
+	/**
+	 * Creates a query on a reference
+	 */
+	constructor(ref: DataReference) {
+		this.ref = ref;
+		this[_private] = {
+			filters: [],
+			skip: 0,
+			take: 0,
+			order: [],
+			events: {},
+		};
+	}
+
+	/**
+	 * Applies a filter to the children of the refence being queried.
+	 * If there is an index on the property key being queried, it will be used
+	 * to speed up the query
+	 * @param key property to test value of
+	 * @param op operator to use
+	 * @param compare value to compare with
+	 */
+	filter(key: string | number, op: QueryOperator, compare?: any): DataReferenceQuery {
+		if ((op === "in" || op === "!in") && (!(compare instanceof Array) || compare.length === 0)) {
+			throw new Error(`${op} filter for ${key} must supply an Array compare argument containing at least 1 value`);
+		}
+		if ((op === "between" || op === "!between") && (!(compare instanceof Array) || compare.length !== 2)) {
+			throw new Error(`${op} filter for ${key} must supply an Array compare argument containing 2 values`);
+		}
+		if ((op === "matches" || op === "!matches") && !(compare instanceof RegExp)) {
+			throw new Error(`${op} filter for ${key} must supply a RegExp compare argument`);
+		}
+		// DISABLED 2019/10/23 because it is not fully implemented only works locally
+		// if (op === "custom" && typeof compare !== "function") {
+		//     throw `${op} filter for ${key} must supply a Function compare argument`;
+		// }
+		// DISABLED 2022/08/15, implemented by query.ts in acebase
+		// if ((op === 'contains' || op === '!contains') && ((typeof compare === 'object' && !(compare instanceof Array) && !(compare instanceof Date)) || (compare instanceof Array && compare.length === 0))) {
+		//     throw new Error(`${op} filter for ${key} must supply a simple value or (non-zero length) array compare argument`);
+		// }
+		this[_private].filters.push({ key, op, compare });
+		return this;
+	}
+
+	/**
+	 * @deprecated use `.filter` instead
+	 */
+	where(key: string | number, op: QueryOperator, compare?: any) {
+		return this.filter(key, op, compare);
+	}
+
+	/**
+	 * Limits the number of query results
+	 */
+	take(n: number): DataReferenceQuery {
+		this[_private].take = n;
+		return this;
+	}
+
+	/**
+	 * Skips the first n query results
+	 */
+	skip(n: number): DataReferenceQuery {
+		this[_private].skip = n;
+		return this;
+	}
+
+	/**
+	 * Sorts the query results
+	 * @param key key to sort on
+	 */
+	sort(key: string): DataReferenceQuery;
+	/**
+	 * @param ascending whether to sort ascending (default) or descending
+	 */
+	sort(key: string, ascending: boolean): DataReferenceQuery;
+	sort(key: string, ascending = true): DataReferenceQuery {
+		if (!["string", "number"].includes(typeof key)) {
+			throw "key must be a string or number";
+		}
+		this[_private].order.push({ key, ascending });
+		return this;
+	}
+
+	/**
+	 * @deprecated use `.sort` instead
+	 */
+	order(key: string, ascending = true) {
+		return this.sort(key, ascending);
+	}
+
+	/**
+	 * Executes the query
+	 * @returns returns a Promise that resolves with an array of DataSnapshots
+	 */
+	get<T = any>(): Promise<DataSnapshotsArray<T>>;
+	/**
+	 * Executes the query with additional options
+	 * @param options data retrieval options to include or exclude specific child data, and whether to return snapshots (default) or references only
+	 * @returns returns a Promise that resolves with an array of DataReferences
+	 */
+	get<T = any>(options: QueryDataRetrievalOptions & { snapshots: false }): Promise<DataReferencesArray<T>>;
+	/**
+	 * @returns returns a Promise that resolves with an array of DataSnapshots
+	 */
+	get<T = any>(options: QueryDataRetrievalOptions & { snapshots?: true }): Promise<DataSnapshotsArray<T>>;
+	/**
+	 * @returns returns a Promise that resolves with an array of DataReferences or DataSnapshots
+	 */
+	get<T = any>(options: QueryDataRetrievalOptions): Promise<DataReferencesArray<T> | DataSnapshotsArray<T>>;
+	/**
+	 * @param callback callback to use instead of returning a promise
+	 * @returns returns nothing because a callback is being used
+	 */
+	get<T = any>(options: QueryDataRetrievalOptions, callback: (snapshots: DataSnapshotsArray<T>) => void): void;
+	/**
+	 * @returns returns nothing because a callback is being used
+	 */
+	get<T = any>(options: QueryDataRetrievalOptions, callback: (snapshotsOrReferences: DataSnapshotsArray<T> | DataReferencesArray<T>) => void): void;
+	get<T = any>(
+		optionsOrCallback?: QueryDataRetrievalOptions | ((results: DataSnapshotsArray<T> | DataReferencesArray<T>) => void),
+		callback?: (results: DataSnapshotsArray<T> | DataReferencesArray<T>) => void,
+	): Promise<DataSnapshotsArray<T> | DataReferencesArray<T>> | void;
+	get<T = any>(
+		optionsOrCallback?: QueryDataRetrievalOptions | ((results: DataSnapshotsArray<T> | DataReferencesArray<T>) => void),
+		callback?: ((results: DataSnapshotsArray<T> | DataReferencesArray<T>) => void) | ((snapshots: DataSnapshotsArray<T>) => void),
+	): Promise<DataSnapshotsArray<T> | DataReferencesArray<T>> | void {
+		if (!this.ref.db.isReady) {
+			const promise = this.ref.db.ready().then(() => this.get(optionsOrCallback, callback as any) as any);
+			return typeof optionsOrCallback !== "function" && typeof callback !== "function" ? promise : undefined; // only return promise if no callback is used
+		}
+
+		callback = typeof optionsOrCallback === "function" ? optionsOrCallback : typeof callback === "function" ? callback : undefined;
+
+		const options: QueryOptions = new QueryDataRetrievalOptions(typeof optionsOrCallback === "object" ? optionsOrCallback : { snapshots: true, cache_mode: "allow" });
+		options.allow_cache = options.cache_mode !== "bypass"; // Backward compatibility when using older acebase-client
+		options.eventHandler = (ev) => {
+			// TODO: implement context for query events
+			if (!this[_private].events[ev.name]) {
+				return false;
+			}
+			const listeners = this[_private].events[ev.name];
+			if (typeof listeners !== "object" || listeners.length === 0) {
+				return false;
+			}
+			if (["add", "change", "remove"].includes(ev.name)) {
+				const eventData: RealtimeQueryEvent = {
+					name: ev.name,
+					ref: new DataReference(this.ref.db, ev.path),
+				};
+				if (eventData.ref && options.snapshots && ev.name !== "remove") {
+					const val = db.types.deserialize(ev.path, ev.value);
+					eventData.snapshot = new DataSnapshot(eventData.ref, val, false);
+				}
+				ev = eventData;
+			}
+			listeners.forEach((callback) => {
+				try {
+					callback(ev);
+				} catch (err: any) {
+					this.ref.db.debug.error(`Error executing "${ev.name}" event handler of realtime query on path "${this.ref.path}": ${err?.stack ?? err?.message ?? err}`);
+				}
+			});
+		};
+		// Check if there are event listeners set for realtime changes
+		options.monitor = { add: false, change: false, remove: false };
+		if (this[_private].events) {
+			if (this[_private].events["add"] && this[_private].events["add"].length > 0) {
+				options.monitor.add = true;
+			}
+			if (this[_private].events["change"] && this[_private].events["change"].length > 0) {
+				options.monitor.change = true;
+			}
+			if (this[_private].events["remove"] && this[_private].events["remove"].length > 0) {
+				options.monitor.remove = true;
+			}
+		}
+
+		// Stop realtime results if they are still enabled on a previous .get on this instance
+		this.stop();
+
+		// NOTE: returning promise here, regardless of callback argument. Good argument to refactor method to async/await soon
+		const db = this.ref.db;
+		return db.storage
+			.query(this.ref.path, this[_private], options)
+			.catch((err) => {
+				throw new Error(err);
+			})
+			.then((res) => {
+				const { stop } = res;
+				let { results, context } = res;
+				this.stop = async () => {
+					await stop();
+				};
+				if (!("results" in res && "context" in res)) {
+					console.warn("Query results missing context. Update your acebase and/or acebase-client packages");
+					(results = <any>res), (context = {});
+				}
+				if (options.snapshots) {
+					const snaps = (results as { path: string; val: any }[]).map<DataSnapshot>((result) => {
+						const val = db.types.deserialize(result.path, result.val);
+						return new DataSnapshot(db.ref(result.path), val, false, undefined, context);
+					});
+					return DataSnapshotsArray.from(snaps);
+				} else {
+					const refs = (results as string[]).map<DataReference>((path) => db.ref(path));
+					return DataReferencesArray.from(refs);
+				}
+			})
+			.then((results) => {
+				callback && callback(results as any);
+				return results;
+			});
+	}
+
+	/**
+	 * Stops a realtime query, no more notifications will be received.
+	 */
+	async stop() {
+		// Overridden by .get
+	}
+
+	/**
+	 * Executes the query and returns references. Short for `.get({ snapshots: false })`
+	 * @param callback callback to use instead of returning a promise
+	 * @returns returns an Promise that resolves with an array of DataReferences, or void when using a callback
+	 * @deprecated Use `find` instead
+	 */
+	getRefs<T = any>(callback?: (references: DataReferencesArray) => void): Promise<DataReferencesArray<T>> | void {
+		return this.get<T>({ snapshots: false }, callback as any);
+	}
+
+	/**
+	 * Executes the query and returns an array of references. Short for `.get({ snapshots: false })`
+	 */
+	find<T = any>(): Promise<DataReferencesArray<T>> {
+		return this.get<T>({ snapshots: false });
+	}
+
+	/**
+	 * Executes the query and returns the number of results
+	 */
+	async count(): Promise<number> {
+		const refs = await this.find();
+		return refs.length;
+	}
+
+	/**
+	 * Executes the query and returns if there are any results
+	 */
+	async exists(): Promise<boolean> {
+		const originalTake = this[_private].take;
+		const p = this.take(1).find();
+		this.take(originalTake);
+		const refs = await p;
+		return refs.length !== 0;
+	}
+
+	/**
+	 * Executes the query, removes all matches from the database
+	 * @returns returns a Promise that resolves once all matches have been removed
+	 */
+	async remove(callback?: (results: QueryRemoveResult[]) => void): Promise<QueryRemoveResult[]> {
+		const refs = await this.find();
+
+		// Perform updates on each distinct parent collection (only 1 parent if this is not a wildcard path)
+		const parentUpdates = refs.reduce((parents, ref) => {
+			if (ref.parent) {
+				const parent = parents[ref.parent.path];
+				if (!parent) {
+					parents[ref.parent.path] = [ref];
+				} else {
+					parent.push(ref);
+				}
+			}
+			return parents;
+		}, {} as Record<string, DataReference[]>);
+
+		const db = this.ref.db;
+		const promises = Object.keys(parentUpdates).map(async (parentPath): Promise<QueryRemoveResult> => {
+			const updates = refs.reduce((updates, ref) => {
+				updates[ref.key] = null;
+				return updates;
+			}, {} as Record<string, null>);
+			const ref = db.ref(parentPath);
+			try {
+				await ref.update(updates);
+				return { ref, success: true };
+			} catch (error: any) {
+				return { ref, success: false, error };
+			}
+		});
+
+		const results = await Promise.all(promises);
+		callback && callback(results);
+		return results;
+	}
+
+	/**
+	 * Subscribes to an event. Supported events are:
+	 *  "stats": receive information about query performance.
+	 *  "hints": receive query or index optimization hints
+	 *  "add", "change", "remove": receive real-time query result changes
+	 * @param event Name of the event to subscribe to
+	 * @param callback Callback function
+	 * @returns returns reference to this query
+	 */
+	on(event: "add" | "change" | "remove", callback: RealtimeQueryEventCallback): DataReferenceQuery;
+	on(event: "hints", callback: QueryHintsEventCallback): DataReferenceQuery;
+	on(event: "stats", callback: QueryStatsEventCallback): DataReferenceQuery;
+	on(event: string, callback: RealtimeQueryEventCallback | QueryHintsEventCallback | QueryStatsEventCallback) {
+		if (!this[_private].events[event]) {
+			this[_private].events[event] = [];
+		}
+		this[_private].events[event].push(callback as any);
+		return this;
+	}
+
+	/**
+	 * Unsubscribes from (a) previously added event(s)
+	 * @param event Name of the event
+	 * @param callback callback function to remove
+	 * @returns returns reference to this query
+	 */
+	off(event?: "stats" | "hints" | "add" | "change" | "remove", callback?: RealtimeQueryEventCallback): DataReferenceQuery {
+		if (typeof event === "undefined") {
+			this[_private].events = {};
+			return this;
+		}
+		if (!this[_private].events[event]) {
+			return this;
+		}
+		if (typeof callback === "undefined") {
+			delete this[_private].events[event];
+			return this;
+		}
+		const index = this[_private].events[event].indexOf(callback);
+		if (!~index) {
+			return this;
+		}
+		this[_private].events[event].splice(index, 1);
+		return this;
+	}
+
+	/**
+	 * Executes the query and iterates through each result by streaming them one at a time.
+	 * @param callback function to call with a `DataSnapshot` of each child. If your function
+	 * returns a `Promise`, iteration will wait until it resolves before loading the next child.
+	 * Iterating stops if callback returns (or resolves with) `false`
+	 * @returns Returns a Promise that resolves with an iteration summary.
+	 * @example
+	 * ```js
+	 * const result = await db.query('books')
+	 *  .filter('category', '==', 'cooking')
+	 *  .forEach(bookSnapshot => {
+	 *     const book = bookSnapshot.val();
+	 *     console.log(`Found cooking book "${book.title}": "${book.description}"`);
+	 *  });
+	 *
+	 * // In above example we're only using 'title' and 'description'
+	 * // of each book. Let's only load those to increase performance:
+	 * const result = await db.query('books')
+	 *  .filter('category', '==', 'cooking')
+	 *  .forEach(
+	 *    { include: ['title', 'description'] },
+	 *    bookSnapshot => {
+	 *       const book = bookSnapshot.val();
+	 *       console.log(`Found cooking book "${book.title}": "${book.description}"`);
+	 *    }
+	 * );
+	 * ```
+	 */
+	forEach<T = any>(callback: ForEachIteratorCallback<T>): Promise<ForEachIteratorResult>;
+	/**
+	 * @param options specify what data to load for each child. Eg `{ include: ['title', 'description'] }`
+	 * will only load each child's title and description properties
+	 */
+	forEach<T = any>(options: DataRetrievalOptions, callback: ForEachIteratorCallback<T>): Promise<ForEachIteratorResult>;
+	async forEach<T = any>(callbackOrOptions: ForEachIteratorCallback<T> | DataRetrievalOptions, callback?: ForEachIteratorCallback<T>): Promise<ForEachIteratorResult> {
+		let options;
+		if (typeof callbackOrOptions === "function") {
+			callback = callbackOrOptions;
+		} else {
+			options = callbackOrOptions;
+		}
+		if (typeof callback !== "function") {
+			throw new TypeError("No callback function given");
+		}
+
+		// Get all query results. This could be tweaked further using paging
+		const refs = await this.find();
+
+		const summary: ForEachIteratorResult = {
+			canceled: false,
+			total: refs.length,
+			processed: 0,
+		};
+
+		// Iterate through all children until callback returns false
+		for (let i = 0; i < refs.length; i++) {
+			const ref = refs[i];
+
+			// Get child data
+			const snapshot = await ref.get(options);
+			summary.processed++;
+
+			if (!snapshot.exists()) {
+				// Was removed in the meantime, skip
+				continue;
+			}
+
+			// Run callback
+			const result = await callback(snapshot);
+			if (result === false) {
+				summary.canceled = true;
+				break; // Stop looping
+			}
+		}
+
+		return summary;
+	}
 }

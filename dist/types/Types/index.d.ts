@@ -1,8 +1,8 @@
-import type { DataReference } from "src/DataBase/data/reference";
-import type { DataSnapshot } from "src/DataBase/data/snapshot";
-import type { EventStream } from "src/Lib/Subscription";
-import type { ObjectDifferences } from "src/Lib/Utils";
-import { ObjectCollection } from "src/Lib/ObjectCollection";
+import type { DataReference } from "../DataBase/data/reference";
+import type { DataSnapshot } from "../DataBase/data/snapshot";
+import type { EventStream } from "../Lib/Subscription";
+import type { ObjectDifferences } from "../Lib/Utils";
+import { ObjectCollection } from "../Lib/ObjectCollection";
 export type * as TypeLocalStorage from "./LocalStorage";
 export type * as TypeProxy from "./Proxy";
 export type * as TypeSchema from "./schema";

@@ -22,13 +22,7 @@
         "resolveJsonModule": true,
         "noImplicitAny": false,
         "noEmitOnError": true,
-        "removeComments": false,
-        "baseUrl": "./",
-        "paths": {
-            "src/*": [
-                "./src/*"
-            ]
-        }
+        "removeComments": false
     },
     "compileOnSave": false,
     "include": [

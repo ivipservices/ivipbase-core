@@ -4,7 +4,7 @@ export { default as LocalStorage } from "./LocalStorage";
 
 export * as Types from "./Types";
 
-export { DataReference, DataReferenceQuery, DataRetrievalOptions } from "./DataBase/data/reference";
+export { DataReference, DataReferenceQuery, DataRetrievalOptions, QueryDataRetrievalOptions, DataSnapshotsArray, DataReferencesArray } from "./DataBase/data/reference";
 
 export { DataSnapshot, MutationsDataSnapshot, IDataMutationsArray } from "./DataBase/data/snapshot";
 
@@ -37,3 +37,7 @@ export { default as SimpleObservable } from "./Lib/SimpleObservable";
 export { PartialArray } from "./Lib/PartialArray";
 
 export { ObjectCollection } from "./Lib/ObjectCollection";
+
+export { default as StorageNode } from "./LocalStorage/Node";
+
+export * as IStorageNode from "./LocalStorage/Node";

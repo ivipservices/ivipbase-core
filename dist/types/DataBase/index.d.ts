@@ -1,9 +1,9 @@
-import SimpleEventEmitter from "src/Lib/SimpleEventEmitter";
+import SimpleEventEmitter from "../Lib/SimpleEventEmitter";
 import { DataReference, DataReferenceQuery } from "./data/reference";
-import LocalStorage from "src/LocalStorage";
-import { LoggingLevel } from "src/Types";
-import DebugLogger from "src/Lib/DebugLogger";
-import TypeMappings from "src/Lib/TypeMappings";
+import LocalStorage from "../LocalStorage";
+import { LoggingLevel } from "../Types";
+import DebugLogger from "../Lib/DebugLogger";
+import TypeMappings from "../Lib/TypeMappings";
 export declare class DataBaseSettings {
     /**
      * What level to use for console logging.

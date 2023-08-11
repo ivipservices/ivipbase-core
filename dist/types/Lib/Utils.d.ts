@@ -1,4 +1,4 @@
-import { ObjectProperty, TypedArray, TypedArrayLike, ValueCompareResult } from "src/Types";
+import { ObjectProperty, TypedArray, TypedArrayLike, ValueCompareResult } from "../Types";
 export declare function numberToBytes(number: number): number[];
 export declare function bytesToNumber(bytes: TypedArrayLike | TypedArray | number[]): number;
 export declare const bigintToBytes: (number: bigint) => number[];

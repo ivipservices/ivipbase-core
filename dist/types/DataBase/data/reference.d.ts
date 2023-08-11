@@ -1,10 +1,10 @@
-import { EventStream } from "src/Lib/Subscription";
+import { EventStream } from "../../Lib/Subscription";
 import { DataSnapshot } from "./snapshot";
 import DataBase from "..";
-import { EventCallback, EventSettings, ForEachIteratorCallback, ForEachIteratorResult, IStreamLike, NotifyEvent, PathVariables, StreamReadFunction, StreamWriteFunction, ValueEvent } from "src/Types";
-import { ReflectionNodeInfo, ValueChange, ValueMutation } from "src/Types/LocalStorage";
-import { ILiveDataProxy, LiveDataProxyOptions } from "src/Types/Proxy";
-import { type Observable } from "src/Lib/OptionalObservable";
+import { EventCallback, EventSettings, ForEachIteratorCallback, ForEachIteratorResult, IStreamLike, NotifyEvent, PathVariables, StreamReadFunction, StreamWriteFunction, ValueEvent } from "../../Types";
+import { ReflectionNodeInfo, ValueChange, ValueMutation } from "../../Types/LocalStorage";
+import { ILiveDataProxy, LiveDataProxyOptions } from "../../Types/Proxy";
+import { type Observable } from "../../Lib/OptionalObservable";
 export declare class DataRetrievalOptions {
     /**
      * child keys to include (will exclude other keys), can include wildcards (eg "messages/*\/title")

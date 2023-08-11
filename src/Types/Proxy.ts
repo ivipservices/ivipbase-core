@@ -1,8 +1,8 @@
-import type { OrderedCollectionProxy } from "src/DataBase/data/proxy";
-import type { DataReference } from "src/DataBase/data/reference";
-import type { DataSnapshot } from "src/DataBase/data/snapshot";
-import type { EventSubscription } from "src/Lib/Subscription";
-import type { Observable } from "src/Lib/OptionalObservable";
+import type { OrderedCollectionProxy } from "../DataBase/data/proxy";
+import type { DataReference } from "../DataBase/data/reference";
+import type { DataSnapshot } from "../DataBase/data/snapshot";
+import type { EventSubscription } from "../Lib/Subscription";
+import type { Observable } from "../Lib/OptionalObservable";
 
 export interface IProxyContext {
 	acebase_cursor?: string;

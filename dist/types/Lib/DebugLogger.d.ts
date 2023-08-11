@@ -1,4 +1,4 @@
-import { LoggingFunction, LoggingLevel } from "src/Types";
+import { LoggingFunction, LoggingLevel } from "../Types";
 export default class DebugLogger {
     level: LoggingLevel;
     private prefix;

@@ -12,7 +12,7 @@ import {
 	V2SerializedReference,
 	V2SerializedRegExp,
 	V2SerializedValue,
-} from "src/Types/transport";
+} from "../Types/transport";
 import ascii85 from "./Ascii85";
 import { PartialArray } from "./PartialArray";
 import PathInfo, { PathReference } from "./PathInfo";

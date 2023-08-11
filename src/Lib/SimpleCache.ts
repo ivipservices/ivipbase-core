@@ -1,4 +1,4 @@
-import { SimpleCacheOptions } from "src/Types";
+import { SimpleCacheOptions } from "../Types";
 import { cloneObject } from "./Utils";
 
 const calculateExpiryTime = (expirySeconds: number) => (expirySeconds > 0 ? Date.now() + expirySeconds * 1000 : Infinity);

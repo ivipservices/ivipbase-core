@@ -1,4 +1,4 @@
-import { IProperty, ISchemaCheckResult, IType } from "src/Types/schema";
+import { IProperty, ISchemaCheckResult, IType } from "../Types/schema";
 
 // parses a typestring, creates checker functions
 function parse(definition: string) {

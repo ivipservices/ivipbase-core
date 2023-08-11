@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Utils_1 = require("./Utils");
 const PathInfo_1 = __importDefault(require("./PathInfo"));
-const reference_1 = require("src/DataBase/data/reference");
-const snapshot_1 = require("src/DataBase/data/snapshot");
+const reference_1 = require("../DataBase/data/reference");
+const snapshot_1 = require("../DataBase/data/snapshot");
 /**
  * (for internal use) - gets the mapping set for a specific path
  */
@@ -67,19 +67,14 @@ function mapDeep(mappings, entryPath) {
         let isMatch = true;
         if (keys.length === 0 && startPath !== null) {
             // Only match first node's children if mapping pattern is "*" or "$variable"
-            isMatch =
-                mkeys.length === 1 &&
-                    (mkeys[0] === "*" ||
-                        (typeof mkeys[0] === "string" && mkeys[0][0] === "$"));
+            isMatch = mkeys.length === 1 && (mkeys[0] === "*" || (typeof mkeys[0] === "string" && mkeys[0][0] === "$"));
         }
         else {
             mkeys.every((mkey, index) => {
                 if (index >= keys.length) {
                     return false; // stop .every loop
                 }
-                else if (mkey === "*" ||
-                    (typeof mkey === "string" && mkey[0] === "$") ||
-                    mkey === keys[index]) {
+                else if (mkey === "*" || (typeof mkey === "string" && mkey[0] === "$") || mkey === keys[index]) {
                     return true; // continue .every loop
                 }
                 else {
@@ -107,10 +102,7 @@ function process(db, mappings, path, obj, action) {
     const keys = PathInfo_1.default.getPathKeys(path); // path.length > 0 ? path.split("/") : [];
     const m = mapDeep(mappings, path);
     const changes = [];
-    m.sort((a, b) => PathInfo_1.default.getPathKeys(a.path).length >
-        PathInfo_1.default.getPathKeys(b.path).length
-        ? -1
-        : 1); // Deepest paths first
+    m.sort((a, b) => (PathInfo_1.default.getPathKeys(a.path).length > PathInfo_1.default.getPathKeys(b.path).length ? -1 : 1)); // Deepest paths first
     m.forEach((mapping) => {
         const mkeys = PathInfo_1.default.getPathKeys(mapping.path); //mapping.path.length > 0 ? mapping.path.split("/") : [];
         mkeys.push("*");

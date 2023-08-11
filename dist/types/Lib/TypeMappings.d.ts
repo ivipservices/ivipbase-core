@@ -1,6 +1,6 @@
-import { DataReference } from "src/DataBase/data/reference";
-import { DataSnapshot } from "src/DataBase/data/snapshot";
-import type DataBase from "src/DataBase";
+import { DataReference } from "../DataBase/data/reference";
+import { DataSnapshot } from "../DataBase/data/snapshot";
+import type DataBase from "../DataBase";
 type CreatorFunction = string | ((snap: DataSnapshot) => any);
 type SerializerFunction = string | ((ref: DataReference, typedObj: any) => any);
 type SerializableClassType = {

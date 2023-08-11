@@ -1,6 +1,6 @@
-import SimpleEventEmitter from "src/Lib/SimpleEventEmitter";
-import { EventSubscriptionCallback, EventSubscriptionSettings, StreamReadFunction, StreamWriteFunction } from "src/Types";
-import { Query, QueryOptions, ReflectionNodeInfo, ReflectionType, SchemaInfo, ValueChange, ValueMutation } from "src/Types/LocalStorage";
+import SimpleEventEmitter from "../Lib/SimpleEventEmitter";
+import { EventSubscriptionCallback, EventSubscriptionSettings, StreamReadFunction, StreamWriteFunction } from "../Types";
+import { Query, QueryOptions, ReflectionNodeInfo, ReflectionType, SchemaInfo, ValueChange, ValueMutation } from "../Types/LocalStorage";
 export default abstract class LocalStorage extends SimpleEventEmitter {
     constructor();
     /**
