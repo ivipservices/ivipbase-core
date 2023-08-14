@@ -71,21 +71,21 @@ const data = {
 
 const nodeManager = new StorageNode();
 
-nodeManager.writeNode("root/outros/info", data);
+nodeManager.setNode("root/outros/info", data);
 
-//nodeManager.writeNode("root/outros/info/location", null);
+nodeManager.setNode("root/outros/info/name", null);
 
-console.log(nodeManager.getInfoBy("root/outros/info/location", { include_child_count: true }));
+//console.log(nodeManager.getInfoBy("root/outros/info/location", { include_child_count: true }));
 
-// nodeManager.writeNode("root/users/aksdjlkwjelkrj3uy5ou8uidsjf", {
-// 	id: "aksdjlkwjelkrj3uy5ou8uidsjf",
-// 	name: "David Souza Silva",
-// 	mail: "fulano@teste.com",
-// 	created: new Date().toISOString(),
-// });
+nodeManager.setNode("root/users/aksdjlkwjelkrj3uy5ou8uidsjf", {
+	id: "aksdjlkwjelkrj3uy5ou8uidsjf",
+	name: "David Souza Silva",
+	mail: "fulano@teste.com",
+	created: new Date().toISOString(),
+});
 
-// const nodesInfo = nodeManager.getNodesBy("root/outros");
+//console.log(nodeManager.getNodesBy("root"));
 
-// const nodesJson = nodeManager.toJson("root/outros");
+const nodesJson = nodeManager.exportJson("root");
 
-// console.log(JSON.stringify(nodesJson, null, 4));
+console.log(JSON.stringify(nodesJson, null, 4));

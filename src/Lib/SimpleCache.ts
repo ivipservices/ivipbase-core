@@ -13,6 +13,7 @@ export class SimpleCache<K, V> {
 	options: SimpleCacheOptions;
 	private cache: Map<K, CacheValue<V>>;
 	enabled = true;
+
 	get size() {
 		return this.cache.size;
 	}
@@ -37,12 +38,14 @@ export class SimpleCache<K, V> {
 		}, 60 * 1000);
 		interval.unref?.();
 	}
+
 	has(key: K) {
 		if (!this.enabled) {
 			return false;
 		}
 		return this.cache.has(key);
 	}
+
 	get(key: K): V | null {
 		if (!this.enabled) {
 			return null;
@@ -55,6 +58,7 @@ export class SimpleCache<K, V> {
 		entry.accessed = Date.now();
 		return this.options.cloneValues ? (cloneObject(entry.value) as V) : entry.value;
 	}
+
 	set(key: K, value: V) {
 		if (this.options.maxEntries && this.options.maxEntries > 0 && this.cache.size >= this.options.maxEntries && !this.cache.has(key)) {
 			// console.warn(`* cache limit ${this.options.maxEntries} reached: ${this.cache.size}`);
@@ -91,9 +95,11 @@ export class SimpleCache<K, V> {
 			expires: calculateExpiryTime(this.options.expirySeconds ?? this.defaultExpirySeconds),
 		});
 	}
+
 	remove(key: K) {
 		this.cache.delete(key);
 	}
+
 	cleanUp() {
 		const now = Date.now();
 		this.cache.forEach((entry, key) => {

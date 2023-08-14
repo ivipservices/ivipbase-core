@@ -106,7 +106,7 @@ export function getNodeValueType(value: unknown) {
 	} else if (typeof value === "bigint") {
 		return VALUE_TYPES.BIGINT;
 	}
-	return 0;
+	return VALUE_TYPES.EMPTY;
 }
 
 export function getValueType(value: unknown) {
@@ -131,7 +131,7 @@ export function getValueType(value: unknown) {
 	} else if (typeof value === "bigint") {
 		return VALUE_TYPES.BIGINT;
 	}
-	return 0;
+	return VALUE_TYPES.EMPTY;
 }
 
 export class NodeSettings {
@@ -442,6 +442,7 @@ export default class Node {
 
 		const containsChild = this.nodes.findIndex(({ path }) => pathInfo.isAncestorOf(path)) >= 0;
 		const isArrayChild = (() => {
+			if (containsChild) return false;
 			const child = this.nodes.find(({ path }) => pathInfo.isParentOf(path));
 			return child ? typeof PathInfo.get(child.path).key === "number" : false;
 		})();
@@ -477,16 +478,10 @@ export default class Node {
 				info.childCount = value ? Object.keys(value ?? {}).length : 0;
 				info.childCount += this.nodes
 					.filter(({ path }) => pathInfo.isAncestorOf(path))
-					.map(({ path }) => PathInfo.get(path.replace(new RegExp(`^${pathInfo.path}`), "")).keys[1] ?? "")
+					.map(({ path }) => PathInfo.get(path.replace(new RegExp(`^${pathInfo.path}`, "gi"), "")).keys[1] ?? "")
 					.filter((path, index, list) => {
 						return list.indexOf(path) === index;
 					}).length;
-
-				// .reduce((count, { path }) => {
-				// 	const outherPath = `${pathInfo.path}/` + (PathInfo.get(path.replace(new RegExp(`^${pathInfo.path}`), "")).keys[1] ?? "");
-				// 	console.log(outherPath);
-				// 	return count + (pathInfo.isAncestorOf(path) ? 1 : 0);
-				// }, 0);
 			}
 		}
 
@@ -509,6 +504,10 @@ export default class Node {
 			throw new Error(`Invalid root node value. Must be an object`);
 		}
 
+		if (options.merge && typeof options.currentValue === "undefined" && this.isPathExists(path)) {
+			options.currentValue = this.exportJson(path).content.value;
+		}
+
 		//options.currentValue = options.currentValue ?? this.toJson(path);
 
 		// Check if the value for this node changed, to prevent recursive calls to
@@ -517,6 +516,9 @@ export default class Node {
 			options.diff = compareValues(options.currentValue, value);
 			if (options.merge && typeof options.diff === "object") {
 				options.diff.removed = options.diff.removed.filter((key) => value[key] === null); // Only keep "removed" items that are really being removed by setting to null
+				if (([] as any[]).concat(options.diff.changed, options.diff.added, options.diff.removed).length === 0) {
+					options.diff = "identical";
+				}
 			}
 		}
 
@@ -527,7 +529,7 @@ export default class Node {
 		//const currentRow = options.currentValue.content;
 
 		// Get info about current node at path
-		const currentRow = options.currentValue === null ? null : this.toJson(path).content;
+		const currentRow = options.currentValue === null ? null : this.exportJson(path, true, false).content;
 
 		if (options.merge && currentRow) {
 			if (currentRow.type === VALUE_TYPES.ARRAY && !(value instanceof Array) && typeof value === "object" && Object.keys(value).some((key) => isNaN(parseInt(key)))) {
@@ -596,6 +598,17 @@ export default class Node {
 		}
 
 		if (newIsObjectOrArray) {
+			// Object or array. Determine which properties can be stored in the main node,
+			// and which should be stored in their own nodes
+			if (!options.merge) {
+				// Check which keys are present in the old object, but not in newly given object
+				Object.keys(mainNode.value).forEach((key) => {
+					if (!(key in value)) {
+						// Property that was in old object, is not in new value -> set to null to mark deletion!
+						value[key] = null;
+					}
+				});
+			}
 			Object.keys(value).forEach((key) => {
 				const val = value[key];
 				delete (mainNode.value as Record<string, any>)[key]; // key is being overwritten, moved from inline to dedicated, or deleted. TODO: check if this needs to be done SQLite & MSSQL implementations too
@@ -622,6 +635,7 @@ export default class Node {
 					// 	path: pathInfo.childPath(isArray ? parseInt(key) : key),
 					// };
 					// Store in child node
+					delete (mainNode.value as Record<string, any>)[key];
 					childNodeValues[key] = val;
 				}
 			});
@@ -638,7 +652,8 @@ export default class Node {
 			if (currentIsObjectOrArray || newIsObjectOrArray) {
 				const keys: string[] = this.getKeysBy(pathInfo.path);
 
-				children.current = children.current.concat(keys);
+				children.current = children.current.concat(keys).filter((key, i, l) => l.indexOf(key) === i);
+
 				if (newIsObjectOrArray) {
 					if (options && options.merge) {
 						children.new = children.current.slice();
@@ -701,6 +716,7 @@ export default class Node {
 				// Delete all child nodes that were stored in their own record, but are being removed
 				// Also delete nodes that are being moved from a dedicated record to inline
 				const movingNodes = newIsObjectOrArray ? keys.filter((key) => key in (mainNode.value as Record<string, any>)) : []; // moving from dedicated to inline value
+
 				const deleteDedicatedKeys = changes.delete.concat(movingNodes);
 
 				for (let key of deleteDedicatedKeys) {
@@ -709,6 +725,8 @@ export default class Node {
 					this.deleteNode(childPath);
 				}
 			}
+
+			this.deleteNode(pathInfo.path, true);
 
 			this.nodes.push({
 				path: pathInfo.path,
@@ -734,6 +752,8 @@ export default class Node {
 				});
 			}
 
+			this.deleteNode(pathInfo.path, true);
+
 			this.nodes.push({
 				path: pathInfo.path,
 				content: {
@@ -750,26 +770,107 @@ export default class Node {
 		return this;
 	}
 
-	deleteNode(path: string): Node {
+	deleteNode(path: string, specificNode: boolean = false): Node {
 		const pathInfo = PathInfo.get(path);
 		this.nodes = this.nodes.filter(({ path }) => {
-			return !pathInfo.isAncestorOf(path);
+			const nodePath = PathInfo.get(path);
+			return specificNode ? pathInfo.path !== nodePath.path : !pathInfo.isAncestorOf(nodePath) && pathInfo.path !== nodePath.path;
 		});
+		return this;
+	}
+
+	setNode(
+		path: string,
+		value: any,
+		options: {
+			assert_revision?: string;
+		} = {},
+	): Node {
+		const pathInfo = PathInfo.get(path);
+
+		try {
+			if (path === "") {
+				if (value === null || typeof value !== "object" || value instanceof Array || value instanceof ArrayBuffer || ("buffer" in value && value.buffer instanceof ArrayBuffer)) {
+					throw new Error(`Invalid value for root node: ${value}`);
+				}
+
+				this.writeNode("", value, { merge: false });
+			} else if (typeof options.assert_revision !== "undefined") {
+				const info = this.getInfoBy(path);
+
+				if (info.revision !== options.assert_revision) {
+					throw new NodeRevisionError(`revision '${info.revision}' does not match requested revision '${options.assert_revision}'`);
+				}
+
+				if (info.address && info.address.path === path && value !== null && !this.valueFitsInline(value)) {
+					// Overwrite node
+					this.writeNode(path, value, { merge: false });
+				} else {
+					// Update parent node
+					// const lockPath = transaction.moveToParentPath(pathInfo.parentPath);
+					// assert(lockPath === pathInfo.parentPath, `transaction.moveToParentPath() did not move to the right parent path of "${path}"`);
+					this.writeNode(pathInfo.parentPath, { [pathInfo.key as any]: value }, { merge: true });
+				}
+			} else {
+				// Delegate operation to update on parent node
+				// const lockPath = await transaction.moveToParentPath(pathInfo.parentPath);
+				// assert(lockPath === pathInfo.parentPath, `transaction.moveToParentPath() did not move to the right parent path of "${path}"`);
+				this.updateNode(pathInfo.parentPath, { [pathInfo.key as any]: value });
+			}
+		} catch (err) {
+			throw err;
+		}
 
 		return this;
+	}
+
+	updateNode(path: string, updates: any): Node {
+		if (typeof updates !== "object") {
+			throw new Error(`invalid updates argument`); //. Must be a non-empty object or array
+		} else if (Object.keys(updates).length === 0) {
+			return this; // Nothing to update. Done!
+		}
+
+		try {
+			const nodeInfo = this.getInfoBy(path);
+			const pathInfo = PathInfo.get(path);
+
+			if (nodeInfo.exists && nodeInfo.address && nodeInfo.address.path === path) {
+				this.writeNode(path, updates, { merge: true });
+			} else if (nodeInfo.exists) {
+				// Node exists, but is stored in its parent node.
+				// const pathInfo = PathInfo.get(path);
+				// const lockPath = transaction.moveToParentPath(pathInfo.parentPath);
+				// assert(lockPath === pathInfo.parentPath, `transaction.moveToParentPath() did not move to the right parent path of "${path}"`);
+				this.writeNode(pathInfo.parentPath, { [pathInfo.key as any]: updates }, { merge: true });
+			} else {
+				// The node does not exist, it's parent doesn't have it either. Update the parent instead
+				// const lockPath = transaction.moveToParentPath(pathInfo.parentPath);
+				// assert(lockPath === pathInfo.parentPath, `transaction.moveToParentPath() did not move to the right parent path of "${path}"`);
+				this.updateNode(pathInfo.parentPath, { [pathInfo.key as any]: updates });
+			}
+		} catch (err) {
+			throw err;
+		}
+
+		return this;
+	}
+
+	importJson(path: string, value: any): Node {
+		return this.setNode(path, value);
 	}
 
 	static parse(path: string, value: any, options: Partial<NodeSettings> = {}): StorageNodeInfo[] {
 		return new Node([], options).writeNode(path, value).getNodesBy(path);
 	}
 
-	toJson(nodes?: StorageNodeInfo[] | string): StorageNodeInfo {
+	exportJson(nodes?: StorageNodeInfo[] | string, onlyChildren: boolean = false, includeChildrenDedicated: boolean = true): StorageNodeInfo {
 		const byPathRoot: string | undefined = typeof nodes === "string" ? nodes : undefined;
 
 		nodes = typeof nodes === "string" ? this.getNodesBy(nodes) : Array.isArray(nodes) ? nodes : ([nodes] as any);
 		nodes = Array.isArray(nodes) ? nodes.filter((node: any = {}) => node && typeof node.path === "string" && "content" in node) : this.nodes;
 
-		const byNodes = nodes.map((node) => {
+		let byNodes = nodes.map((node) => {
 			node = JSON.parse(JSON.stringify(node));
 			node.content = this.processReadNodeValue(node.content);
 			return node;
@@ -817,6 +918,30 @@ export default class Node {
 		const pathInfo = PathInfo.get(path);
 
 		const result = targetNode;
+
+		if (!includeChildrenDedicated) {
+			onlyChildren = false;
+		}
+
+		if (onlyChildren) {
+			byNodes = byNodes
+				.filter((node) => {
+					const nodePath = PathInfo.get(node.path);
+					const isChild = nodePath.isChildOf(path);
+					if (!isChild && nodePath.isDescendantOf(path)) {
+						const childKeys = PathInfo.get(nodePath.path.replace(new RegExp(`^${path}`, "gi"), "")).keys;
+						if (childKeys[1] && !(childKeys[1] in result.value)) {
+							result.value[childKeys[1]] = typeof childKeys[2] === "number" ? [] : {};
+						}
+					}
+					return isChild;
+				})
+				.map((node) => {
+					node.content.value = node.content.type === VALUE_TYPES.OBJECT ? {} : node.content.type === VALUE_TYPES.ARRAY ? [] : node.content.value;
+					return node;
+				})
+				.filter((node) => node.content.value !== null);
+		}
 
 		const objectToArray = (obj: Record<string, any>) => {
 			// Convert object value to array
@@ -872,13 +997,28 @@ export default class Node {
 			}
 		}
 
+		if (!includeChildrenDedicated && [VALUE_TYPES.OBJECT, VALUE_TYPES.ARRAY].includes(result.type)) {
+			Object.keys(result.value).forEach((key) => {
+				const val = result.value[key];
+				delete (result.value as Record<string, any>)[key];
+				if (val === null || typeof val === "undefined") {
+					return;
+				}
+				if (this.valueFitsInline(val)) {
+					(result.value as Record<string, any>)[key] = val;
+				} else {
+					delete (result.value as Record<string, any>)[key];
+				}
+			});
+		}
+
 		return {
 			path: pathInfo.path,
 			content: result,
 		};
 	}
 
-	static toJson(nodes: StorageNodeInfo[], options: Partial<NodeSettings> = {}): StorageNodeInfo {
-		return new Node([], options).toJson(nodes);
+	static toJson(nodes: StorageNodeInfo[], onlyChildren: boolean = false, options: Partial<NodeSettings> = {}): StorageNodeInfo {
+		return new Node([], options).exportJson(nodes, onlyChildren);
 	}
 }

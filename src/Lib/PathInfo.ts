@@ -83,7 +83,8 @@ export class PathInfo {
 			});
 			childKey = keys;
 		}
-		return new PathInfo(this.keys.concat(childKey));
+		if (Array.isArray(childKey) && childKey[0] === "") childKey.shift();
+		return new PathInfo(this.keys.concat(childKey).filter((key, i, l) => (key === "" ? i === 0 : true)));
 	}
 	childPath(childKey: string | number | Array<string | number>): string {
 		return this.child(childKey).path;
