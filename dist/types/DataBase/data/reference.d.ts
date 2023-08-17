@@ -1,7 +1,7 @@
 import { EventStream } from "../../Lib/Subscription";
 import { DataSnapshot } from "./snapshot";
 import DataBase from "..";
-import { EventCallback, EventSettings, ForEachIteratorCallback, ForEachIteratorResult, IStreamLike, NotifyEvent, PathVariables, StreamReadFunction, StreamWriteFunction, ValueEvent } from "../../Types";
+import { EventCallback, EventSettings, ForEachIteratorCallback, ForEachIteratorResult, IStreamLike, NotifyEvent, PathVariables, QueryHintsEventCallback, QueryOperator, QueryRemoveResult, QueryStatsEventCallback, RealtimeQueryEventCallback, StreamReadFunction, StreamWriteFunction, ValueEvent } from "../../Types";
 import { ReflectionNodeInfo, ValueChange, ValueMutation } from "../../Types/LocalStorage";
 import { ILiveDataProxy, LiveDataProxyOptions } from "../../Types/Proxy";
 import { type Observable } from "../../Lib/OptionalObservable";
@@ -460,8 +460,180 @@ export declare class DataReference<T = any> {
         changes: ValueChange[];
     }>;
 }
+export declare class QueryDataRetrievalOptions extends DataRetrievalOptions {
+    /**
+     * Whether to return snapshots of matched nodes (include data), or references only (no data). Default is `true`
+     * @default true
+     */
+    snapshots?: boolean;
+    /**
+     * @param options Options for data retrieval, allows selective loading of object properties
+     */
+    constructor(options: QueryDataRetrievalOptions);
+}
+export declare class DataSnapshotsArray<T = any> extends Array<DataSnapshot<T>> {
+    static from<T = any>(snaps: DataSnapshot<T>[]): DataSnapshotsArray<T>;
+    getValues(): (T | null)[];
+}
+export declare class DataReferencesArray<T = any> extends Array<DataReference<T>> {
+    static from<T = any>(refs: DataReference<T>[]): DataReferencesArray<T>;
+    getPaths(): string[];
+}
 export declare class DataReferenceQuery {
+    private [_private];
+    ref: DataReference;
+    /**
+     * Creates a query on a reference
+     */
     constructor(ref: DataReference);
+    /**
+     * Applies a filter to the children of the refence being queried.
+     * If there is an index on the property key being queried, it will be used
+     * to speed up the query
+     * @param key property to test value of
+     * @param op operator to use
+     * @param compare value to compare with
+     */
+    filter(key: string | number, op: QueryOperator, compare?: any): DataReferenceQuery;
+    /**
+     * @deprecated use `.filter` instead
+     */
+    where(key: string | number, op: QueryOperator, compare?: any): DataReferenceQuery;
+    /**
+     * Limits the number of query results
+     */
+    take(n: number): DataReferenceQuery;
+    /**
+     * Skips the first n query results
+     */
+    skip(n: number): DataReferenceQuery;
+    /**
+     * Sorts the query results
+     * @param key key to sort on
+     */
+    sort(key: string): DataReferenceQuery;
+    /**
+     * @param ascending whether to sort ascending (default) or descending
+     */
+    sort(key: string, ascending: boolean): DataReferenceQuery;
+    /**
+     * @deprecated use `.sort` instead
+     */
+    order(key: string, ascending?: boolean): DataReferenceQuery;
+    /**
+     * Executes the query
+     * @returns returns a Promise that resolves with an array of DataSnapshots
+     */
+    get<T = any>(): Promise<DataSnapshotsArray<T>>;
+    /**
+     * Executes the query with additional options
+     * @param options data retrieval options to include or exclude specific child data, and whether to return snapshots (default) or references only
+     * @returns returns a Promise that resolves with an array of DataReferences
+     */
+    get<T = any>(options: QueryDataRetrievalOptions & {
+        snapshots: false;
+    }): Promise<DataReferencesArray<T>>;
+    /**
+     * @returns returns a Promise that resolves with an array of DataSnapshots
+     */
+    get<T = any>(options: QueryDataRetrievalOptions & {
+        snapshots?: true;
+    }): Promise<DataSnapshotsArray<T>>;
+    /**
+     * @returns returns a Promise that resolves with an array of DataReferences or DataSnapshots
+     */
+    get<T = any>(options: QueryDataRetrievalOptions): Promise<DataReferencesArray<T> | DataSnapshotsArray<T>>;
+    /**
+     * @param callback callback to use instead of returning a promise
+     * @returns returns nothing because a callback is being used
+     */
+    get<T = any>(options: QueryDataRetrievalOptions, callback: (snapshots: DataSnapshotsArray<T>) => void): void;
+    /**
+     * @returns returns nothing because a callback is being used
+     */
+    get<T = any>(options: QueryDataRetrievalOptions, callback: (snapshotsOrReferences: DataSnapshotsArray<T> | DataReferencesArray<T>) => void): void;
+    get<T = any>(optionsOrCallback?: QueryDataRetrievalOptions | ((results: DataSnapshotsArray<T> | DataReferencesArray<T>) => void), callback?: (results: DataSnapshotsArray<T> | DataReferencesArray<T>) => void): Promise<DataSnapshotsArray<T> | DataReferencesArray<T>> | void;
+    /**
+     * Stops a realtime query, no more notifications will be received.
+     */
+    stop(): Promise<void>;
+    /**
+     * Executes the query and returns references. Short for `.get({ snapshots: false })`
+     * @param callback callback to use instead of returning a promise
+     * @returns returns an Promise that resolves with an array of DataReferences, or void when using a callback
+     * @deprecated Use `find` instead
+     */
+    getRefs<T = any>(callback?: (references: DataReferencesArray) => void): Promise<DataReferencesArray<T>> | void;
+    /**
+     * Executes the query and returns an array of references. Short for `.get({ snapshots: false })`
+     */
+    find<T = any>(): Promise<DataReferencesArray<T>>;
+    /**
+     * Executes the query and returns the number of results
+     */
+    count(): Promise<number>;
+    /**
+     * Executes the query and returns if there are any results
+     */
+    exists(): Promise<boolean>;
+    /**
+     * Executes the query, removes all matches from the database
+     * @returns returns a Promise that resolves once all matches have been removed
+     */
+    remove(callback?: (results: QueryRemoveResult[]) => void): Promise<QueryRemoveResult[]>;
+    /**
+     * Subscribes to an event. Supported events are:
+     *  "stats": receive information about query performance.
+     *  "hints": receive query or index optimization hints
+     *  "add", "change", "remove": receive real-time query result changes
+     * @param event Name of the event to subscribe to
+     * @param callback Callback function
+     * @returns returns reference to this query
+     */
+    on(event: "add" | "change" | "remove", callback: RealtimeQueryEventCallback): DataReferenceQuery;
+    on(event: "hints", callback: QueryHintsEventCallback): DataReferenceQuery;
+    on(event: "stats", callback: QueryStatsEventCallback): DataReferenceQuery;
+    /**
+     * Unsubscribes from (a) previously added event(s)
+     * @param event Name of the event
+     * @param callback callback function to remove
+     * @returns returns reference to this query
+     */
+    off(event?: "stats" | "hints" | "add" | "change" | "remove", callback?: RealtimeQueryEventCallback): DataReferenceQuery;
+    /**
+     * Executes the query and iterates through each result by streaming them one at a time.
+     * @param callback function to call with a `DataSnapshot` of each child. If your function
+     * returns a `Promise`, iteration will wait until it resolves before loading the next child.
+     * Iterating stops if callback returns (or resolves with) `false`
+     * @returns Returns a Promise that resolves with an iteration summary.
+     * @example
+     * ```js
+     * const result = await db.query('books')
+     *  .filter('category', '==', 'cooking')
+     *  .forEach(bookSnapshot => {
+     *     const book = bookSnapshot.val();
+     *     console.log(`Found cooking book "${book.title}": "${book.description}"`);
+     *  });
+     *
+     * // In above example we're only using 'title' and 'description'
+     * // of each book. Let's only load those to increase performance:
+     * const result = await db.query('books')
+     *  .filter('category', '==', 'cooking')
+     *  .forEach(
+     *    { include: ['title', 'description'] },
+     *    bookSnapshot => {
+     *       const book = bookSnapshot.val();
+     *       console.log(`Found cooking book "${book.title}": "${book.description}"`);
+     *    }
+     * );
+     * ```
+     */
+    forEach<T = any>(callback: ForEachIteratorCallback<T>): Promise<ForEachIteratorResult>;
+    /**
+     * @param options specify what data to load for each child. Eg `{ include: ['title', 'description'] }`
+     * will only load each child's title and description properties
+     */
+    forEach<T = any>(options: DataRetrievalOptions, callback: ForEachIteratorCallback<T>): Promise<ForEachIteratorResult>;
 }
 export {};
 //# sourceMappingURL=reference.d.ts.map

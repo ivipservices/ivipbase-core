@@ -97,12 +97,6 @@ export type SubscribeFunction<T> = (value: T) => any;
 export interface IObservableLike<T> {
     subscribe(subscriber: SubscribeFunction<T>): ISubscription;
 }
-export type ForEachIteratorCallback<T = any> = (childSnapshot: DataSnapshot<T>) => boolean | void | Promise<boolean | void>;
-export interface ForEachIteratorResult {
-    canceled: boolean;
-    total: number;
-    processed: number;
-}
 export interface SimpleCacheOptions {
     /** The number of seconds to keep items cached after their last update */
     expirySeconds?: number;
@@ -114,4 +108,59 @@ export interface SimpleCacheOptions {
 export type Constructable<T> = {
     new (...args: any[]): T;
 };
+export type ForEachIteratorCallback<T = any> = (childSnapshot: DataSnapshot<T>) => boolean | void | Promise<boolean | void>;
+export interface ForEachIteratorResult {
+    canceled: boolean;
+    total: number;
+    processed: number;
+}
+export interface QueryFilter {
+    key: string | number;
+    op: QueryOperator;
+    compare: any;
+}
+export interface QueryOrder {
+    key: string;
+    ascending: boolean;
+}
+export interface RealtimeQueryEvent {
+    name: string;
+    snapshot?: DataSnapshot;
+    ref?: DataReference;
+}
+export type RealtimeQueryEventCallback = (event: RealtimeQueryEvent) => void;
+export type QueryHintsEventCallback = (event: {
+    name: "hints";
+    type: string;
+    source: string;
+    hints: {
+        type: string;
+        value: any;
+        description: string;
+    }[];
+}) => void;
+export type IndexQueryStats = {
+    type: string;
+    args: any;
+    started: number;
+    stopped: number;
+    steps: IndexQueryStats[];
+    result: number;
+    duration: number;
+};
+export type QueryStatsEventCallback = (event: {
+    name: "stats";
+    type: string;
+    source: string;
+    stats: IndexQueryStats[];
+}) => void;
+export interface QueryRemoveResult {
+    success: boolean;
+    error?: Error;
+    ref: DataReference;
+}
+export type StandardQueryOperator = "<" | "<=" | "==" | "!=" | ">" | ">=" | "exists" | "!exists" | "between" | "!between" | "like" | "!like" | "matches" | "!matches" | "in" | "!in" | "has" | "!has" | "contains" | "!contains";
+export type FullTextQueryOperator = "fulltext:contains" | "fulltext:!contains";
+export type GeoQueryOperator = "geo:nearby";
+export type QueryOperator = StandardQueryOperator | FullTextQueryOperator | GeoQueryOperator;
 //# sourceMappingURL=index.d.ts.map

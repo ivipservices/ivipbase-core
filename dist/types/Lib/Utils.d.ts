@@ -27,6 +27,7 @@ export declare class ObjectDifferences {
     }>);
     forChild(key: ObjectProperty): ValueCompareResult;
 }
+export declare const isDate: (value: unknown) => boolean;
 export declare function compareValues(oldVal: any, newVal: any, sortedResults?: boolean): ValueCompareResult;
 export declare function getMutations(oldVal: any, newVal: any, sortedResults?: boolean): Array<{
     target: ObjectProperty[];

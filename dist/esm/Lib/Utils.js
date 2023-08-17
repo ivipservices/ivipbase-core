@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getGlobalObject = exports.defer = exports.getChildValues = exports.getMutations = exports.compareValues = exports.ObjectDifferences = exports.valuesAreEqual = exports.cloneObject = exports.concatTypedArrays = exports.decodeString = exports.encodeString = exports.bytesToBigint = exports.bigintToBytes = exports.bytesToNumber = exports.numberToBytes = void 0;
+exports.getGlobalObject = exports.defer = exports.getChildValues = exports.getMutations = exports.compareValues = exports.isDate = exports.ObjectDifferences = exports.valuesAreEqual = exports.cloneObject = exports.concatTypedArrays = exports.decodeString = exports.encodeString = exports.bytesToBigint = exports.bigintToBytes = exports.bytesToNumber = exports.numberToBytes = void 0;
 const PathInfo_1 = require("./PathInfo.js");
 const PartialArray_1 = require("./PartialArray.js");
 function numberToBytes(number) {
@@ -345,6 +345,10 @@ class ObjectDifferences {
     }
 }
 exports.ObjectDifferences = ObjectDifferences;
+const isDate = function (value) {
+    return value instanceof Date || (typeof value === "string" && !isNaN(Date.parse(value)));
+};
+exports.isDate = isDate;
 function compareValues(oldVal, newVal, sortedResults = false) {
     const voids = [undefined, null];
     if (oldVal === newVal) {
@@ -377,8 +381,8 @@ function compareValues(oldVal, newVal, sortedResults = false) {
                 : new Uint8Array(newVal.buffer, newVal.byteOffset, newVal.byteLength);
         return typed1.byteLength === typed2.byteLength && typed1.every((val, i) => typed2[i] === val) ? "identical" : "changed";
     }
-    else if (oldVal instanceof Date || newVal instanceof Date) {
-        return oldVal instanceof Date && newVal instanceof Date && oldVal.getTime() === newVal.getTime() ? "identical" : "changed";
+    else if ((0, exports.isDate)(oldVal) || (0, exports.isDate)(newVal)) {
+        return (0, exports.isDate)(oldVal) && (0, exports.isDate)(newVal) && new Date(oldVal).getTime() === new Date(newVal).getTime() ? "identical" : "changed";
     }
     else if (oldVal instanceof PathInfo_1.PathReference || newVal instanceof PathInfo_1.PathReference) {
         return oldVal instanceof PathInfo_1.PathReference && newVal instanceof PathInfo_1.PathReference && oldVal.path === newVal.path ? "identical" : "changed";

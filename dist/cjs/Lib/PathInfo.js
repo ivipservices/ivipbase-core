@@ -14,9 +14,9 @@ exports.PathReference = PathReference;
 function getPathKeys(path) {
     path = path.replace(/\[/g, "/[").replace(/^\/+/, "").replace(/\/+$/, ""); // Replace [ with /[, remove leading slashes, remove trailing slashes
     if (path.length === 0) {
-        return [];
+        return [""];
     }
-    const keys = path.split("/");
+    const keys = ["", ...path.split("/")];
     return keys.map((key) => {
         return key.startsWith("[") ? parseInt(key.slice(1, -1)) : key;
     });
@@ -40,13 +40,9 @@ class PathInfo {
             this.keys = path;
         }
         else {
-            this.keys = [];
+            this.keys = [""];
         }
-        this.path = this.keys.reduce((path, key, i) => i === 0
-            ? `${key}`
-            : typeof key === "string"
-                ? `${path}/${key}`
-                : `${path}[${key}]`, "");
+        this.path = this.keys.reduce((path, key, i) => (i === 0 ? `${key}` : typeof key === "string" ? `${path}/${key}` : `${path}[${key}]`), "").replace(/^\//gi, "");
     }
     get key() {
         return this.keys.length === 0 ? null : this.keys.slice(-1)[0];
@@ -68,7 +64,7 @@ class PathInfo {
             }
             // Allow expansion of a child path (eg "user/name") into equivalent `child('user').child('name')`
             const keys = getPathKeys(childKey);
-            keys.forEach((key) => {
+            keys.forEach((key, index) => {
                 // Check AceBase key rules here so they will be enforced regardless of storage target.
                 // This prevents specific keys to be allowed in one environment (eg browser), but then
                 // refused upon syncing to a binary AceBase db. Fixes https://github.com/appy-one/acebase/issues/172
@@ -81,13 +77,15 @@ class PathInfo {
                 if (key.length > 128) {
                     throw new Error(`child key "${key}" for path "${this.path}" is too long. Max key length is 128`);
                 }
-                if (key.length === 0) {
+                if (index !== 0 && key.length === 0) {
                     throw new Error(`child key for path "${this.path}" cannot be empty`);
                 }
             });
             childKey = keys;
         }
-        return new PathInfo(this.keys.concat(childKey));
+        if (Array.isArray(childKey) && childKey[0] === "")
+            childKey.shift();
+        return new PathInfo(this.keys.concat(childKey).filter((key, i, l) => (key === "" ? i === 0 : true)));
     }
     childPath(childKey) {
         return this.child(childKey).path;
@@ -171,8 +169,7 @@ class PathInfo {
             if (key === pathKeys[index] || index >= pathKeys.length) {
                 return key;
             }
-            else if (typeof key === "string" &&
-                (key === "*" || key[0] === "$")) {
+            else if (typeof key === "string" && (key === "*" || key[0] === "$")) {
                 return pathKeys[index];
             }
             else {
@@ -205,8 +202,7 @@ class PathInfo {
         const pathKeys = getPathKeys(varPath);
         let n = 0;
         const targetPath = pathKeys.reduce((path, key) => {
-            if (typeof key === "string" &&
-                (key === "*" || key.startsWith("$"))) {
+            if (typeof key === "string" && (key === "*" || key.startsWith("$"))) {
                 return PathInfo.getChildPath(path, vars[n++]);
             }
             else {
@@ -228,19 +224,14 @@ class PathInfo {
         }
         return this.keys.every((key, index) => {
             const otherKey = other.keys[index];
-            return (otherKey === key ||
-                (typeof otherKey === "string" &&
-                    (otherKey === "*" || otherKey[0] === "$")) ||
-                (typeof key === "string" && (key === "*" || key[0] === "$")));
+            return otherKey === key || (typeof otherKey === "string" && (otherKey === "*" || otherKey[0] === "$")) || (typeof key === "string" && (key === "*" || key[0] === "$"));
         });
     }
     /**
      * Checks if a given path is an ancestor, eg "posts" is an ancestor of "posts/12344/title"
      */
     isAncestorOf(descendantPath) {
-        const descendant = descendantPath instanceof PathInfo
-            ? descendantPath
-            : new PathInfo(descendantPath);
+        const descendant = descendantPath instanceof PathInfo ? descendantPath : new PathInfo(descendantPath);
         if (descendant.path === "" || this.path === descendant.path) {
             return false;
         }
@@ -252,19 +243,14 @@ class PathInfo {
         }
         return this.keys.every((key, index) => {
             const otherKey = descendant.keys[index];
-            return (otherKey === key ||
-                (typeof otherKey === "string" &&
-                    (otherKey === "*" || otherKey[0] === "$")) ||
-                (typeof key === "string" && (key === "*" || key[0] === "$")));
+            return otherKey === key || (typeof otherKey === "string" && (otherKey === "*" || otherKey[0] === "$")) || (typeof key === "string" && (key === "*" || key[0] === "$"));
         });
     }
     /**
      * Checks if a given path is a descendant, eg "posts/1234/title" is a descendant of "posts"
      */
     isDescendantOf(ancestorPath) {
-        const ancestor = ancestorPath instanceof PathInfo
-            ? ancestorPath
-            : new PathInfo(ancestorPath);
+        const ancestor = ancestorPath instanceof PathInfo ? ancestorPath : new PathInfo(ancestorPath);
         if (this.path === "" || this.path === ancestor.path) {
             return false;
         }
@@ -276,10 +262,7 @@ class PathInfo {
         }
         return ancestor.keys.every((key, index) => {
             const otherKey = this.keys[index];
-            return (otherKey === key ||
-                (typeof otherKey === "string" &&
-                    (otherKey === "*" || otherKey[0] === "$")) ||
-                (typeof key === "string" && (key === "*" || key[0] === "$")));
+            return otherKey === key || (typeof otherKey === "string" && (otherKey === "*" || otherKey[0] === "$")) || (typeof key === "string" && (key === "*" || key[0] === "$"));
         });
     }
     /**
@@ -299,10 +282,7 @@ class PathInfo {
                 return true;
             }
             const otherKey = other.keys[index];
-            return (otherKey === key ||
-                (typeof otherKey === "string" &&
-                    (otherKey === "*" || otherKey[0] === "$")) ||
-                (typeof key === "string" && (key === "*" || key[0] === "$")));
+            return otherKey === key || (typeof otherKey === "string" && (otherKey === "*" || otherKey[0] === "$")) || (typeof key === "string" && (key === "*" || key[0] === "$"));
         });
     }
     /**

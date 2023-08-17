@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ObjectCollection = exports.PartialArray = exports.SimpleObservable = exports.SchemaDefinition = exports.SimpleEventEmitter = exports.SimpleCache = exports.ascii85 = exports.Utils = exports.TypeMappings = exports.Transport = exports.EventSubscription = exports.EventPublisher = exports.EventStream = exports.PathInfo = exports.PathReference = exports.ID = exports.DebugLogger = exports.OrderedCollectionProxy = exports.proxyAccess = exports.MutationsDataSnapshot = exports.DataSnapshot = exports.DataRetrievalOptions = exports.DataReferenceQuery = exports.DataReference = exports.Types = exports.LocalStorage = exports.DataBaseSettings = exports.DataBase = void 0;
+exports.IStorageNode = exports.StorageNode = exports.ObjectCollection = exports.PartialArray = exports.SimpleObservable = exports.SchemaDefinition = exports.SimpleEventEmitter = exports.SimpleCache = exports.ascii85 = exports.Utils = exports.TypeMappings = exports.Transport = exports.EventSubscription = exports.EventPublisher = exports.EventStream = exports.PathInfo = exports.PathReference = exports.ID = exports.DebugLogger = exports.OrderedCollectionProxy = exports.proxyAccess = exports.MutationsDataSnapshot = exports.DataSnapshot = exports.DataReferencesArray = exports.DataSnapshotsArray = exports.QueryDataRetrievalOptions = exports.DataRetrievalOptions = exports.DataReferenceQuery = exports.DataReference = exports.Types = exports.LocalStorage = exports.DataBaseSettings = exports.DataBase = void 0;
 var DataBase_1 = require("./DataBase/index.js");
 Object.defineProperty(exports, "DataBase", { enumerable: true, get: function () { return DataBase_1.DataBase; } });
 Object.defineProperty(exports, "DataBaseSettings", { enumerable: true, get: function () { return DataBase_1.DataBaseSettings; } });
@@ -37,6 +37,9 @@ var reference_1 = require("./DataBase/data/reference.js");
 Object.defineProperty(exports, "DataReference", { enumerable: true, get: function () { return reference_1.DataReference; } });
 Object.defineProperty(exports, "DataReferenceQuery", { enumerable: true, get: function () { return reference_1.DataReferenceQuery; } });
 Object.defineProperty(exports, "DataRetrievalOptions", { enumerable: true, get: function () { return reference_1.DataRetrievalOptions; } });
+Object.defineProperty(exports, "QueryDataRetrievalOptions", { enumerable: true, get: function () { return reference_1.QueryDataRetrievalOptions; } });
+Object.defineProperty(exports, "DataSnapshotsArray", { enumerable: true, get: function () { return reference_1.DataSnapshotsArray; } });
+Object.defineProperty(exports, "DataReferencesArray", { enumerable: true, get: function () { return reference_1.DataReferencesArray; } });
 var snapshot_1 = require("./DataBase/data/snapshot.js");
 Object.defineProperty(exports, "DataSnapshot", { enumerable: true, get: function () { return snapshot_1.DataSnapshot; } });
 Object.defineProperty(exports, "MutationsDataSnapshot", { enumerable: true, get: function () { return snapshot_1.MutationsDataSnapshot; } });
@@ -72,4 +75,7 @@ var PartialArray_1 = require("./Lib/PartialArray.js");
 Object.defineProperty(exports, "PartialArray", { enumerable: true, get: function () { return PartialArray_1.PartialArray; } });
 var ObjectCollection_1 = require("./Lib/ObjectCollection.js");
 Object.defineProperty(exports, "ObjectCollection", { enumerable: true, get: function () { return ObjectCollection_1.ObjectCollection; } });
+var Node_1 = require("./LocalStorage/Node/index.js");
+Object.defineProperty(exports, "StorageNode", { enumerable: true, get: function () { return __importDefault(Node_1).default; } });
+exports.IStorageNode = __importStar(require("./LocalStorage/Node/index.js"));
 //# sourceMappingURL=index.js.map
