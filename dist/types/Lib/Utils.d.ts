@@ -39,5 +39,18 @@ export declare function getChildValues(childKey: ObjectProperty, oldValue: any, 
     newValue: any;
 };
 export declare function defer(fn: (...args: any[]) => any): void;
-export declare function getGlobalObject(): any;
+export declare function getGlobalObject(): typeof globalThis;
+export declare function contains<T extends object>(obj: T, key: string): boolean;
+export declare function safeGet<T extends object, K extends keyof T>(obj: T, key: K): T[K] | undefined;
+export declare function isEmpty(obj: object): obj is {};
+/**
+ * Deep equal two objects. Support Arrays and Objects.
+ */
+export declare function deepEqual(a: object, b: object): boolean;
+/**
+ * Copied from https://stackoverflow.com/a/2117523
+ * Generates a new uuid.
+ * @public
+ */
+export declare function uuidv4(): string;
 //# sourceMappingURL=Utils.d.ts.map

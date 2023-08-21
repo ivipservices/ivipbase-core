@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getGlobalObject = exports.defer = exports.getChildValues = exports.getMutations = exports.compareValues = exports.isDate = exports.ObjectDifferences = exports.valuesAreEqual = exports.cloneObject = exports.concatTypedArrays = exports.decodeString = exports.encodeString = exports.bytesToBigint = exports.bigintToBytes = exports.bytesToNumber = exports.numberToBytes = void 0;
+exports.uuidv4 = exports.deepEqual = exports.isEmpty = exports.safeGet = exports.contains = exports.getGlobalObject = exports.defer = exports.getChildValues = exports.getMutations = exports.compareValues = exports.isDate = exports.ObjectDifferences = exports.valuesAreEqual = exports.cloneObject = exports.concatTypedArrays = exports.decodeString = exports.encodeString = exports.bytesToBigint = exports.bigintToBytes = exports.bytesToNumber = exports.numberToBytes = void 0;
 const PathInfo_1 = require("./PathInfo.js");
 const PartialArray_1 = require("./PartialArray.js");
 function numberToBytes(number) {
@@ -469,19 +469,85 @@ function getGlobalObject() {
     if (typeof globalThis !== "undefined") {
         return globalThis;
     }
-    if (typeof global !== "undefined") {
-        return global;
+    if (typeof self !== "undefined") {
+        return self;
     }
     if (typeof window !== "undefined") {
         return window;
     }
-    if (typeof self !== "undefined") {
-        return self;
+    if (typeof global !== "undefined") {
+        return global;
     }
-    return ((function () {
-        // @ts-ignore
-        return this;
-    })() ?? Function("return this")());
+    throw new Error("Unable to locate global object.");
 }
 exports.getGlobalObject = getGlobalObject;
+function contains(obj, key) {
+    return Object.prototype.hasOwnProperty.call(obj, key);
+}
+exports.contains = contains;
+function safeGet(obj, key) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        return obj[key];
+    }
+    else {
+        return undefined;
+    }
+}
+exports.safeGet = safeGet;
+function isEmpty(obj) {
+    for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            return false;
+        }
+    }
+    return true;
+}
+exports.isEmpty = isEmpty;
+/**
+ * Deep equal two objects. Support Arrays and Objects.
+ */
+function deepEqual(a, b) {
+    if (a === b) {
+        return true;
+    }
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    for (const k of aKeys) {
+        if (!bKeys.includes(k)) {
+            return false;
+        }
+        const aProp = a[k];
+        const bProp = b[k];
+        if (isObject(aProp) && isObject(bProp)) {
+            if (!deepEqual(aProp, bProp)) {
+                return false;
+            }
+        }
+        else if (aProp !== bProp) {
+            return false;
+        }
+    }
+    for (const k of bKeys) {
+        if (!aKeys.includes(k)) {
+            return false;
+        }
+    }
+    return true;
+}
+exports.deepEqual = deepEqual;
+function isObject(thing) {
+    return thing !== null && typeof thing === "object";
+}
+/**
+ * Copied from https://stackoverflow.com/a/2117523
+ * Generates a new uuid.
+ * @public
+ */
+function uuidv4() {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0, v = c === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
+}
+exports.uuidv4 = uuidv4;
 //# sourceMappingURL=Utils.js.map

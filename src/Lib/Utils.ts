@@ -457,23 +457,90 @@ export function defer(fn: (...args: any[]) => any) {
 	process.nextTick(fn);
 }
 
-export function getGlobalObject(): any {
+export function getGlobalObject(): typeof globalThis {
 	if (typeof globalThis !== "undefined") {
 		return globalThis;
-	}
-	if (typeof global !== "undefined") {
-		return global;
-	}
-	if (typeof window !== "undefined") {
-		return window;
 	}
 	if (typeof self !== "undefined") {
 		return self;
 	}
-	return (
-		(function () {
-			// @ts-ignore
-			return this;
-		})() ?? Function("return this")()
-	);
+	if (typeof window !== "undefined") {
+		return window;
+	}
+	if (typeof global !== "undefined") {
+		return global;
+	}
+	throw new Error("Unable to locate global object.");
+}
+
+export function contains<T extends object>(obj: T, key: string): boolean {
+	return Object.prototype.hasOwnProperty.call(obj, key);
+}
+
+export function safeGet<T extends object, K extends keyof T>(obj: T, key: K): T[K] | undefined {
+	if (Object.prototype.hasOwnProperty.call(obj, key)) {
+		return obj[key];
+	} else {
+		return undefined;
+	}
+}
+
+export function isEmpty(obj: object): obj is {} {
+	for (const key in obj) {
+		if (Object.prototype.hasOwnProperty.call(obj, key)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ * Deep equal two objects. Support Arrays and Objects.
+ */
+export function deepEqual(a: object, b: object): boolean {
+	if (a === b) {
+		return true;
+	}
+
+	const aKeys = Object.keys(a);
+	const bKeys = Object.keys(b);
+	for (const k of aKeys) {
+		if (!bKeys.includes(k)) {
+			return false;
+		}
+
+		const aProp = (a as Record<string, unknown>)[k];
+		const bProp = (b as Record<string, unknown>)[k];
+		if (isObject(aProp) && isObject(bProp)) {
+			if (!deepEqual(aProp, bProp)) {
+				return false;
+			}
+		} else if (aProp !== bProp) {
+			return false;
+		}
+	}
+
+	for (const k of bKeys) {
+		if (!aKeys.includes(k)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function isObject(thing: unknown): thing is object {
+	return thing !== null && typeof thing === "object";
+}
+
+/**
+ * Copied from https://stackoverflow.com/a/2117523
+ * Generates a new uuid.
+ * @public
+ */
+export function uuidv4(): string {
+	return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+		const r = (Math.random() * 16) | 0,
+			v = c === "x" ? r : (r & 0x3) | 0x8;
+		return v.toString(16);
+	});
 }
