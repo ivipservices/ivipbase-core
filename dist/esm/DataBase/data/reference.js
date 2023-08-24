@@ -4,12 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DataReferenceQuery = exports.DataReferencesArray = exports.DataSnapshotsArray = exports.QueryDataRetrievalOptions = exports.DataReference = exports.DataRetrievalOptions = void 0;
-const Subscription_1 = require("../../Lib/Subscription.js");
-const snapshot_1 = require("./snapshot.js");
-const PathInfo_1 = __importDefault(require("../../Lib/PathInfo.js"));
-const ID_1 = __importDefault(require("../../Lib/ID.js"));
-const proxy_1 = require("./proxy.js");
-const OptionalObservable_1 = require("../../Lib/OptionalObservable.js");
+const Subscription_1 = require("../../Lib/Subscription");
+const snapshot_1 = require("./snapshot");
+const PathInfo_1 = __importDefault(require("../../Lib/PathInfo"));
+const ID_1 = __importDefault(require("../../Lib/ID"));
+const proxy_1 = require("./proxy");
+const OptionalObservable_1 = require("../../Lib/OptionalObservable");
 class DataRetrievalOptions {
     /**
      * Options for data retrieval, allows selective loading of object properties

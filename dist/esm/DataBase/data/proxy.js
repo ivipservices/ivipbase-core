@@ -27,13 +27,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderedCollectionProxy = exports.LiveDataProxy = exports.proxyAccess = void 0;
-const reference_1 = require("./reference.js");
-const ID_1 = __importDefault(require("../../Lib/ID.js"));
-const SimpleEventEmitter_1 = __importDefault(require("../../Lib/SimpleEventEmitter.js"));
-const snapshot_1 = require("./snapshot.js");
-const Utils_1 = require("../../Lib/Utils.js");
-const PathInfo_1 = __importStar(require("../../Lib/PathInfo.js"));
-const OptionalObservable_1 = require("../../Lib/OptionalObservable.js");
+const reference_1 = require("./reference");
+const ID_1 = __importDefault(require("../../Lib/ID"));
+const SimpleEventEmitter_1 = __importDefault(require("../../Lib/SimpleEventEmitter"));
+const snapshot_1 = require("./snapshot");
+const Utils_1 = require("../../Lib/Utils");
+const PathInfo_1 = __importStar(require("../../Lib/PathInfo"));
+const OptionalObservable_1 = require("../../Lib/OptionalObservable");
 class RelativeNodeTarget extends Array {
     static areEqual(t1, t2) {
         return t1.length === t2.length && t1.every((key, i) => t2[i] === key);

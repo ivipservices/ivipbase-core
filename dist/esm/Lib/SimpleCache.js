@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SimpleCache = void 0;
-const Utils_1 = require("./Utils.js");
+const Utils_1 = require("./Utils");
 const calculateExpiryTime = (expirySeconds) => (expirySeconds > 0 ? Date.now() + expirySeconds * 1000 : Infinity);
 /**
  * Simple cache implementation that retains immutable values in memory for a limited time.

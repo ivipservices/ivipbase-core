@@ -4,10 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DataBase = exports.DataBaseSettings = void 0;
-const SimpleEventEmitter_1 = __importDefault(require("../Lib/SimpleEventEmitter.js"));
-const reference_1 = require("./data/reference.js");
-const DebugLogger_1 = __importDefault(require("../Lib/DebugLogger.js"));
-const TypeMappings_1 = __importDefault(require("../Lib/TypeMappings.js"));
+const SimpleEventEmitter_1 = __importDefault(require("../Lib/SimpleEventEmitter"));
+const reference_1 = require("./data/reference");
+const DebugLogger_1 = __importDefault(require("../Lib/DebugLogger"));
+const TypeMappings_1 = __importDefault(require("../Lib/TypeMappings"));
 class DataBaseSettings {
     constructor(options) {
         /**

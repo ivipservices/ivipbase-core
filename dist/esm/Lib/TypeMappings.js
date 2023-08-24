@@ -3,10 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const Utils_1 = require("./Utils.js");
-const PathInfo_1 = __importDefault(require("./PathInfo.js"));
-const reference_1 = require("../DataBase/data/reference.js");
-const snapshot_1 = require("../DataBase/data/snapshot.js");
+const Utils_1 = require("./Utils");
+const PathInfo_1 = __importDefault(require("./PathInfo"));
+const reference_1 = require("../DataBase/data/reference");
+const snapshot_1 = require("../DataBase/data/snapshot");
 /**
  * (for internal use) - gets the mapping set for a specific path
  */

@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uuidv4 = exports.deepEqual = exports.isEmpty = exports.safeGet = exports.contains = exports.getGlobalObject = exports.defer = exports.getChildValues = exports.getMutations = exports.compareValues = exports.isDate = exports.ObjectDifferences = exports.valuesAreEqual = exports.cloneObject = exports.concatTypedArrays = exports.decodeString = exports.encodeString = exports.bytesToBigint = exports.bigintToBytes = exports.bytesToNumber = exports.numberToBytes = void 0;
-const PathInfo_1 = require("./PathInfo.js");
-const PartialArray_1 = require("./PartialArray.js");
+const PathInfo_1 = require("./PathInfo");
+const PartialArray_1 = require("./PartialArray");
 function numberToBytes(number) {
     const bytes = new Uint8Array(8);
     const view = new DataView(bytes.buffer);

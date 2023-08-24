@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ObjectCollection = void 0;
-const ID_1 = __importDefault(require("./ID.js"));
+const ID_1 = __importDefault(require("./ID"));
 /**
  * Convenience interface for defining an object collection
  * @example

@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MutationsDataSnapshot = exports.DataSnapshot = void 0;
-const PathInfo_1 = __importDefault(require("../../Lib/PathInfo.js"));
+const PathInfo_1 = __importDefault(require("../../Lib/PathInfo"));
 function getChild(snapshot, path, previous = false) {
     if (!snapshot.exists()) {
         return null;

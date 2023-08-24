@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const SimpleEventEmitter_1 = __importDefault(require("../Lib/SimpleEventEmitter.js"));
+const SimpleEventEmitter_1 = __importDefault(require("../Lib/SimpleEventEmitter"));
 class NotImplementedError extends Error {
     constructor(name) {
         super(`${name} is not implemented`);

@@ -10,6 +10,8 @@ export { DataSnapshot, MutationsDataSnapshot, IDataMutationsArray } from "./Data
 
 export { proxyAccess, OrderedCollectionProxy } from "./DataBase/data/proxy";
 
+export * as Lib from "./Lib";
+
 export { default as DebugLogger } from "./Lib/DebugLogger";
 
 export { default as ID } from "./Lib/ID";
@@ -37,7 +39,3 @@ export { default as SimpleObservable } from "./Lib/SimpleObservable";
 export { PartialArray } from "./Lib/PartialArray";
 
 export { ObjectCollection } from "./Lib/ObjectCollection";
-
-export { default as StorageNode } from "./LocalStorage/Node";
-
-export * as IStorageNode from "./LocalStorage/Node";

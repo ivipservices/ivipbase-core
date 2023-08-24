@@ -1,6 +1,6 @@
 {
 	"name": "ivipbase-core",
-	"version": "1.5.0",
+	"version": "1.5.1",
 	"description": "Componentes principais compartilhados do iVipBase, sem necessidade de instalação manual",
 	"comments": {
 		"browser": "As substituições de arquivo webpack/browserify foram movidas para package.json em dist/cjs e dist/esm. Veja README.md para mais informações",
@@ -23,7 +23,7 @@
 		"build:esm": "tsc -p tsconfig.json && npx tsc-esm-fix ---target='dist/esm'",
 		"build:cjs": "tsc -p tsconfig-cjs.json",
 		"build:packages": "bash ./create-package-files",
-		"npm:publish": "npm run build && npm pack && npm publish --access public"
+		"publish": "npm run build && npm pack && npm publish --access public"
 	},
 	"keywords": [
 		"iVipBase",

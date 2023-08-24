@@ -27,8 +27,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setObservable = exports.getObservable = void 0;
-const SimpleObservable_1 = __importDefault(require("./SimpleObservable.js"));
-const Utils_1 = require("./Utils.js");
+const SimpleObservable_1 = __importDefault(require("./SimpleObservable"));
+const Utils_1 = require("./Utils");
 let _shimRequested = false;
 let _observable;
 (async () => {

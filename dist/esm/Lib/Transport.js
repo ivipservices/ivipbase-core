@@ -27,10 +27,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deserialize2 = exports.serialize2 = exports.serialize = exports.detectSerializeVersion = exports.deserialize = void 0;
-const Ascii85_1 = __importDefault(require("./Ascii85.js"));
-const PartialArray_1 = require("./PartialArray.js");
-const PathInfo_1 = __importStar(require("./PathInfo.js"));
-const Utils_1 = require("./Utils.js");
+const Ascii85_1 = __importDefault(require("./Ascii85"));
+const PartialArray_1 = require("./PartialArray");
+const PathInfo_1 = __importStar(require("./PathInfo"));
+const Utils_1 = require("./Utils");
 /*
     There are now 2 different serialization methods for transporting values.
 
