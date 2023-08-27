@@ -23,7 +23,7 @@
 		"build:esm": "tsc -p tsconfig.json && npx tsc-esm-fix ---target='dist/esm'",
 		"build:cjs": "tsc -p tsconfig-cjs.json",
 		"build:packages": "bash ./create-package-files",
-		"publish": "npm run build && npm pack && npm publish --access public"
+		"npm:publish": "npm run build && npm pack && npm publish --access public"
 	},
 	"keywords": [
 		"iVipBase",
