@@ -1,3 +1,5 @@
+import { SimpleEventEmitterProperty } from "../Types";
+
 function runCallback(callback: (data: any) => void, data: any) {
 	try {
 		callback(data);
@@ -20,12 +22,7 @@ export default class SimpleEventEmitter {
 		this[_subscriptions] = [];
 		this[_oneTimeEvents] = new Map();
 	}
-	on<T = any>(
-		event: string,
-		callback: (data: T) => void,
-	): {
-		stop: () => void;
-	} {
+	on<T = any>(event: string, callback: (data: T) => void): SimpleEventEmitterProperty {
 		if (this[_oneTimeEvents].has(event)) {
 			runCallback(callback, this[_oneTimeEvents].get(event));
 		} else {

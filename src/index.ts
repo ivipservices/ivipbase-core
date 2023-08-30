@@ -28,8 +28,6 @@ export * as Utils from "./Lib/Utils";
 
 export { ascii85 } from "./Lib/Ascii85";
 
-export { SimpleCache } from "./Lib/SimpleCache";
-
 export { default as SimpleEventEmitter } from "./Lib/SimpleEventEmitter";
 
 export { SchemaDefinition } from "./Lib/Schema";

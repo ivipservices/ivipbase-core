@@ -180,3 +180,7 @@ export type StandardQueryOperator =
 export type FullTextQueryOperator = "fulltext:contains" | "fulltext:!contains";
 export type GeoQueryOperator = "geo:nearby";
 export type QueryOperator = StandardQueryOperator | FullTextQueryOperator | GeoQueryOperator;
+
+export interface SimpleEventEmitterProperty {
+	stop: () => void;
+}
