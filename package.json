@@ -48,9 +48,9 @@
 	"author": "IVIPCOIN LTDA <desenvolvimento@ivipcoin.com> (https://ivipcoin.com)",
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/ivipcoin/ivipbase-core/issues"
+		"url": "https://github.com/ivipservices/ivipbase-core/issues"
 	},
-	"homepage": "https://github.com/ivipcoin/ivipbase-core#readme",
+	"homepage": "https://github.com/ivipservices/ivipbase-core#readme",
 	"devDependencies": {
 		"@types/node": "^20.4.8",
 		"@typescript-eslint/eslint-plugin": "^6.2.1",

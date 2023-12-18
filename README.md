@@ -1,6 +1,6 @@
 # Componentes principais do iVipBase
 
-Este pacote contém funcionalidades compartilhadas que são usadas por outros pacotes do iVipBase, não sendo necessário instalá-lo manualmente. Consulte [ivipbase](https://www.npmjs.com/package/ivipbase) e [ivipbase-server](https://www.npmjs.com/package/ivipbase-server) para obter mais informações.
+Este pacote contém funcionalidades compartilhadas que são usadas por outros pacotes do iVipBase, não sendo necessário instalá-lo manualmente. Consulte [ivipbase](https://www.npmjs.com/package/ivipbase) para obter mais informações.
 
 ## Pacotes ESM e CJS
 
