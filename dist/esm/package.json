@@ -1,4 +1,7 @@
 {
     "type": "module",
-    "types": "../types/index.d.ts"
+    "types": "../types/index.d.ts",
+    "browser": {
+        "./process/index.js": "./process/browser.js"
+    }
 }

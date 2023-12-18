@@ -1,7 +1,8 @@
-import { DataSnapshot } from "../DataBase/data/snapshot";
+import { DataSnapshot } from "../DataBase/snapshot";
 import { Constructable, ObjectProperty, TypedArray, TypedArrayLike, ValueCompareResult } from "../Types";
 import { PathReference } from "./PathInfo";
 import { PartialArray } from "./PartialArray";
+import process from "../process";
 
 export function numberToBytes(number: number): number[] {
 	const bytes = new Uint8Array(8);

@@ -1,16 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.uuidv4 = exports.deepEqual = exports.isEmpty = exports.safeGet = exports.contains = exports.getGlobalObject = exports.defer = exports.getChildValues = exports.getMutations = exports.compareValues = exports.isDate = exports.ObjectDifferences = exports.valuesAreEqual = exports.cloneObject = exports.concatTypedArrays = exports.decodeString = exports.encodeString = exports.bytesToBigint = exports.bigintToBytes = exports.bytesToNumber = exports.numberToBytes = void 0;
-const PathInfo_1 = require("./PathInfo.js");
-const PartialArray_1 = require("./PartialArray.js");
-function numberToBytes(number) {
+import { PathReference } from "./PathInfo.js";
+import { PartialArray } from "./PartialArray.js";
+import process from "../process/index.js";
+export function numberToBytes(number) {
     const bytes = new Uint8Array(8);
     const view = new DataView(bytes.buffer);
     view.setFloat64(0, number);
     return new Array(...bytes);
 }
-exports.numberToBytes = numberToBytes;
-function bytesToNumber(bytes) {
+export function bytesToNumber(bytes) {
     const length = Array.isArray(bytes) ? bytes.length : bytes.byteLength;
     if (length !== 8) {
         throw new TypeError("must be 8 bytes");
@@ -20,7 +17,6 @@ function bytesToNumber(bytes) {
     const nr = view.getFloat64(0);
     return nr;
 }
-exports.bytesToNumber = bytesToNumber;
 const hasBigIntSupport = (() => {
     try {
         return typeof BigInt(0) === "bigint";
@@ -80,12 +76,12 @@ if (hasBigIntSupport) {
         return number;
     };
 }
-exports.bigintToBytes = bigIntFunctions.bigintToBytes;
-exports.bytesToBigint = bigIntFunctions.bytesToBigint;
+export const bigintToBytes = bigIntFunctions.bigintToBytes;
+export const bytesToBigint = bigIntFunctions.bytesToBigint;
 /**
  * Converts a string to a utf-8 encoded Uint8Array
  */
-function encodeString(str) {
+export function encodeString(str) {
     if (typeof TextEncoder !== "undefined") {
         // Modern browsers, Node.js v11.0.0+ (or v8.3.0+ with util.TextEncoder)
         const encoder = new TextEncoder();
@@ -148,11 +144,10 @@ function encodeString(str) {
         return new Uint8Array(arr);
     }
 }
-exports.encodeString = encodeString;
 /**
  * Converts a utf-8 encoded buffer to string
  */
-function decodeString(buffer) {
+export function decodeString(buffer) {
     // ArrayBuffer|
     if (typeof TextDecoder !== "undefined") {
         // Modern browsers, Node.js v11.0.0+ (or v8.3.0+ with util.TextDecoder)
@@ -231,15 +226,13 @@ function decodeString(buffer) {
         }
     }
 }
-exports.decodeString = decodeString;
-function concatTypedArrays(a, b) {
+export function concatTypedArrays(a, b) {
     const c = new a.constructor(a.length + b.length);
     c.set(a);
     c.set(b, a.length);
     return c;
 }
-exports.concatTypedArrays = concatTypedArrays;
-function cloneObject(original, stack = []) {
+export function cloneObject(original, stack = []) {
     if (original?.constructor?.name === "DataSnapshot") {
         throw new TypeError(`Object to clone is a DataSnapshot (path "${original.ref.path}")`);
     }
@@ -256,7 +249,7 @@ function cloneObject(original, stack = []) {
         return obj;
     };
     original = checkAndFixTypedArray(original);
-    if (typeof original !== "object" || original === null || original instanceof Date || original instanceof ArrayBuffer || original instanceof PathInfo_1.PathReference || original instanceof RegExp) {
+    if (typeof original !== "object" || original === null || original instanceof Date || original instanceof ArrayBuffer || original instanceof PathReference || original instanceof RegExp) {
         return original;
     }
     const cloneValue = (val) => {
@@ -264,7 +257,7 @@ function cloneObject(original, stack = []) {
             throw new ReferenceError("object contains a circular reference");
         }
         val = checkAndFixTypedArray(val);
-        if (val === null || val instanceof Date || val instanceof ArrayBuffer || val instanceof PathInfo_1.PathReference || val instanceof RegExp) {
+        if (val === null || val instanceof Date || val instanceof ArrayBuffer || val instanceof PathReference || val instanceof RegExp) {
             // || val instanceof ID
             return val;
         }
@@ -281,7 +274,7 @@ function cloneObject(original, stack = []) {
     if (typeof stack === "undefined") {
         stack = [original];
     }
-    const clone = original instanceof Array ? [] : original instanceof PartialArray_1.PartialArray ? new PartialArray_1.PartialArray() : {};
+    const clone = original instanceof Array ? [] : original instanceof PartialArray ? new PartialArray() : {};
     Object.keys(original).forEach((key) => {
         const val = original[key];
         if (typeof val === "function") {
@@ -291,10 +284,9 @@ function cloneObject(original, stack = []) {
     });
     return clone;
 }
-exports.cloneObject = cloneObject;
 const isTypedArray = (val) => typeof val === "object" && ["ArrayBuffer", "Buffer", "Uint8Array", "Uint16Array", "Uint32Array", "Int8Array", "Int16Array", "Int32Array"].includes(val.constructor.name);
 // CONSIDER: updating isTypedArray to: const isTypedArray = val => typeof val === 'object' && 'buffer' in val && 'byteOffset' in val && 'byteLength' in val;
-function valuesAreEqual(val1, val2) {
+export function valuesAreEqual(val1, val2) {
     if (val1 === val2) {
         return true;
     }
@@ -305,8 +297,8 @@ function valuesAreEqual(val1, val2) {
         if (val1 === null || val2 === null) {
             return false;
         }
-        if (val1 instanceof PathInfo_1.PathReference || val2 instanceof PathInfo_1.PathReference) {
-            return val1 instanceof PathInfo_1.PathReference && val2 instanceof PathInfo_1.PathReference && val1.path === val2.path;
+        if (val1 instanceof PathReference || val2 instanceof PathReference) {
+            return val1 instanceof PathReference && val2 instanceof PathReference && val1.path === val2.path;
         }
         if (val1 instanceof Date || val2 instanceof Date) {
             return val1 instanceof Date && val2 instanceof Date && val1.getTime() === val2.getTime();
@@ -326,8 +318,7 @@ function valuesAreEqual(val1, val2) {
     }
     return false;
 }
-exports.valuesAreEqual = valuesAreEqual;
-class ObjectDifferences {
+export class ObjectDifferences {
     constructor(added, removed, changed) {
         this.added = added;
         this.removed = removed;
@@ -344,12 +335,10 @@ class ObjectDifferences {
         return changed ? changed.change : "identical";
     }
 }
-exports.ObjectDifferences = ObjectDifferences;
-const isDate = function (value) {
+export const isDate = function (value) {
     return value instanceof Date || (typeof value === "string" && !isNaN(Date.parse(value)));
 };
-exports.isDate = isDate;
-function compareValues(oldVal, newVal, sortedResults = false) {
+export function compareValues(oldVal, newVal, sortedResults = false) {
     const voids = [undefined, null];
     if (oldVal === newVal) {
         return "identical";
@@ -381,11 +370,11 @@ function compareValues(oldVal, newVal, sortedResults = false) {
                 : new Uint8Array(newVal.buffer, newVal.byteOffset, newVal.byteLength);
         return typed1.byteLength === typed2.byteLength && typed1.every((val, i) => typed2[i] === val) ? "identical" : "changed";
     }
-    else if ((0, exports.isDate)(oldVal) || (0, exports.isDate)(newVal)) {
-        return (0, exports.isDate)(oldVal) && (0, exports.isDate)(newVal) && new Date(oldVal).getTime() === new Date(newVal).getTime() ? "identical" : "changed";
+    else if (isDate(oldVal) || isDate(newVal)) {
+        return isDate(oldVal) && isDate(newVal) && new Date(oldVal).getTime() === new Date(newVal).getTime() ? "identical" : "changed";
     }
-    else if (oldVal instanceof PathInfo_1.PathReference || newVal instanceof PathInfo_1.PathReference) {
-        return oldVal instanceof PathInfo_1.PathReference && newVal instanceof PathInfo_1.PathReference && oldVal.path === newVal.path ? "identical" : "changed";
+    else if (oldVal instanceof PathReference || newVal instanceof PathReference) {
+        return oldVal instanceof PathReference && newVal instanceof PathReference && oldVal.path === newVal.path ? "identical" : "changed";
     }
     else if (typeof oldVal === "object") {
         // Do key-by-key comparison of objects
@@ -421,8 +410,7 @@ function compareValues(oldVal, newVal, sortedResults = false) {
     }
     return "changed";
 }
-exports.compareValues = compareValues;
-function getMutations(oldVal, newVal, sortedResults = false) {
+export function getMutations(oldVal, newVal, sortedResults = false) {
     const process = (target, compareResult, prev, val) => {
         switch (compareResult) {
             case "identical":
@@ -448,8 +436,7 @@ function getMutations(oldVal, newVal, sortedResults = false) {
     const compareResult = compareValues(oldVal, newVal, sortedResults);
     return process([], compareResult, oldVal, newVal);
 }
-exports.getMutations = getMutations;
-function getChildValues(childKey, oldValue, newValue) {
+export function getChildValues(childKey, oldValue, newValue) {
     oldValue = oldValue === null ? null : oldValue[childKey];
     if (typeof oldValue === "undefined") {
         oldValue = null;
@@ -460,12 +447,10 @@ function getChildValues(childKey, oldValue, newValue) {
     }
     return { oldValue, newValue };
 }
-exports.getChildValues = getChildValues;
-function defer(fn) {
+export function defer(fn) {
     process.nextTick(fn);
 }
-exports.defer = defer;
-function getGlobalObject() {
+export function getGlobalObject() {
     if (typeof globalThis !== "undefined") {
         return globalThis;
     }
@@ -480,12 +465,10 @@ function getGlobalObject() {
     }
     throw new Error("Unable to locate global object.");
 }
-exports.getGlobalObject = getGlobalObject;
-function contains(obj, key) {
+export function contains(obj, key) {
     return Object.prototype.hasOwnProperty.call(obj, key);
 }
-exports.contains = contains;
-function safeGet(obj, key) {
+export function safeGet(obj, key) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
         return obj[key];
     }
@@ -493,8 +476,7 @@ function safeGet(obj, key) {
         return undefined;
     }
 }
-exports.safeGet = safeGet;
-function isEmpty(obj) {
+export function isEmpty(obj) {
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
             return false;
@@ -502,11 +484,10 @@ function isEmpty(obj) {
     }
     return true;
 }
-exports.isEmpty = isEmpty;
 /**
  * Deep equal two objects. Support Arrays and Objects.
  */
-function deepEqual(a, b) {
+export function deepEqual(a, b) {
     if (a === b) {
         return true;
     }
@@ -534,7 +515,6 @@ function deepEqual(a, b) {
     }
     return true;
 }
-exports.deepEqual = deepEqual;
 function isObject(thing) {
     return thing !== null && typeof thing === "object";
 }
@@ -543,11 +523,10 @@ function isObject(thing) {
  * Generates a new uuid.
  * @public
  */
-function uuidv4() {
+export function uuidv4() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
         const r = (Math.random() * 16) | 0, v = c === "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
     });
 }
-exports.uuidv4 = uuidv4;
 //# sourceMappingURL=Utils.js.map

@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Utils_1 = require("./Utils");
 const PathInfo_1 = __importDefault(require("./PathInfo"));
-const reference_1 = require("../DataBase/data/reference");
-const snapshot_1 = require("../DataBase/data/snapshot");
+const reference_1 = require("../DataBase/reference");
+const snapshot_1 = require("../DataBase/snapshot");
 /**
  * (for internal use) - gets the mapping set for a specific path
  */
@@ -217,9 +217,9 @@ class TypeMappings {
      * 1) `static create(snap: DataSnapshot)` and 2) `serialize(ref: DataReference)`. See example
      * @param options (optional) You can specify the functions to use to
      * serialize and/or instantiate your class. If you do not specificy a creator (constructor) method,
-     * AceBase will call `YourClass.create(snapshot)` method if it exists, or create an instance of
+     * IvipBase will call `YourClass.create(snapshot)` method if it exists, or create an instance of
      * YourClass with `new YourClass(snapshot)`.
-     * If you do not specifiy a serializer method, AceBase will call `YourClass.prototype.serialize(ref)`
+     * If you do not specifiy a serializer method, IvipBase will call `YourClass.prototype.serialize(ref)`
      * if it exists, or tries storing your object's fields unaltered. NOTE: `this` in your creator
      * function will point to `YourClass`, and `this` in your serializer function will point to the
      * `instance` of `YourClass`.

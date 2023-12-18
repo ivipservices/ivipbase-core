@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SchemaDefinition = void 0;
 // parses a typestring, creates checker functions
 function parse(definition) {
     // tokenize
@@ -308,7 +305,7 @@ function getConstructorType(val) {
             throw new Error(`Schema error: unknown type used: ${val.name}`);
     }
 }
-class SchemaDefinition {
+export class SchemaDefinition {
     constructor(definition, handling = { warnOnly: false }) {
         this.handling = handling;
         this.source = definition;
@@ -371,5 +368,4 @@ class SchemaDefinition {
         return result;
     }
 }
-exports.SchemaDefinition = SchemaDefinition;
 //# sourceMappingURL=Schema.js.map

@@ -1,7 +1,7 @@
 import { cloneObject } from "./Utils";
 import PathInfo from "./PathInfo";
-import { DataReference } from "../DataBase/data/reference";
-import { DataSnapshot } from "../DataBase/data/snapshot";
+import { DataReference } from "../DataBase/reference";
+import { DataSnapshot } from "../DataBase/snapshot";
 import type DataBase from "../DataBase";
 
 type CreatorFunction = string | ((snap: DataSnapshot) => any);
@@ -293,9 +293,9 @@ export default class TypeMappings {
 	 * 1) `static create(snap: DataSnapshot)` and 2) `serialize(ref: DataReference)`. See example
 	 * @param options (optional) You can specify the functions to use to
 	 * serialize and/or instantiate your class. If you do not specificy a creator (constructor) method,
-	 * AceBase will call `YourClass.create(snapshot)` method if it exists, or create an instance of
+	 * IvipBase will call `YourClass.create(snapshot)` method if it exists, or create an instance of
 	 * YourClass with `new YourClass(snapshot)`.
-	 * If you do not specifiy a serializer method, AceBase will call `YourClass.prototype.serialize(ref)`
+	 * If you do not specifiy a serializer method, IvipBase will call `YourClass.prototype.serialize(ref)`
 	 * if it exists, or tries storing your object's fields unaltered. NOTE: `this` in your creator
 	 * function will point to `YourClass`, and `this` in your serializer function will point to the
 	 * `instance` of `YourClass`.

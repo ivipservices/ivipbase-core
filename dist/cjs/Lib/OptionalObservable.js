@@ -51,8 +51,8 @@ let _observable;
 })();
 function getObservable() {
     if (_observable === SimpleObservable_1.default && !_shimRequested) {
-        console.warn("Using AceBase's simple Observable implementation because rxjs is not available. " +
-            'Add it to your project with "npm install rxjs", add it to AceBase using db.setObservable(Observable), ' +
+        console.warn("Using IvipBase's simple Observable implementation because rxjs is not available. " +
+            'Add it to your project with "npm install rxjs", add it to IvipBase using db.setObservable(Observable), ' +
             'or call db.setObservable("shim") to suppress this warning');
     }
     if (_observable) {

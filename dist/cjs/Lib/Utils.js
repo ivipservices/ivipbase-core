@@ -1,8 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uuidv4 = exports.deepEqual = exports.isEmpty = exports.safeGet = exports.contains = exports.getGlobalObject = exports.defer = exports.getChildValues = exports.getMutations = exports.compareValues = exports.isDate = exports.ObjectDifferences = exports.valuesAreEqual = exports.cloneObject = exports.concatTypedArrays = exports.decodeString = exports.encodeString = exports.bytesToBigint = exports.bigintToBytes = exports.bytesToNumber = exports.numberToBytes = void 0;
 const PathInfo_1 = require("./PathInfo");
 const PartialArray_1 = require("./PartialArray");
+const process_1 = __importDefault(require("../process"));
 function numberToBytes(number) {
     const bytes = new Uint8Array(8);
     const view = new DataView(bytes.buffer);
@@ -463,7 +467,7 @@ function getChildValues(childKey, oldValue, newValue) {
 }
 exports.getChildValues = getChildValues;
 function defer(fn) {
-    process.nextTick(fn);
+    process_1.default.nextTick(fn);
 }
 exports.defer = defer;
 function getGlobalObject() {

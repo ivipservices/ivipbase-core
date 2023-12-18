@@ -1,10 +1,4 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ObjectCollection = void 0;
-const ID_1 = __importDefault(require("./ID.js"));
+import ID from "./ID.js";
 /**
  * Convenience interface for defining an object collection
  * @example
@@ -16,7 +10,7 @@ const ID_1 = __importDefault(require("./ID.js"));
  *    messages: ObjectCollection<ChatMessage>
  * }
  */
-class ObjectCollection {
+export class ObjectCollection {
     /**
      * Converts and array of values into an object collection, generating a unique key for each item in the array
      * @param array
@@ -45,10 +39,9 @@ class ObjectCollection {
     static from(array) {
         const collection = {};
         array.forEach((child) => {
-            collection[ID_1.default.generate()] = child;
+            collection[ID.generate()] = child;
         });
         return collection;
     }
 }
-exports.ObjectCollection = ObjectCollection;
 //# sourceMappingURL=ObjectCollection.js.map

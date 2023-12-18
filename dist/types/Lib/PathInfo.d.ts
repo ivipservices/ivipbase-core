@@ -15,7 +15,7 @@ export declare class PathInfo {
     constructor(path: string | Array<string | number>);
     get key(): string | number | null;
     get parent(): PathInfo | null;
-    get parentPath(): string;
+    get parentPath(): string | null;
     child(childKey: string | number | Array<string | number>): PathInfo;
     childPath(childKey: string | number | Array<string | number>): string;
     get pathKeys(): Array<string | number>;

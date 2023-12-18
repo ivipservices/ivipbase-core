@@ -3,7 +3,10 @@
 cat >dist/cjs/package.json <<JSON
 {
     "type": "commonjs",
-    "types": "../types/index.d.ts"
+    "types": "../types/index.d.ts",
+    "browser": {
+        "./process/index.js": "./process/browser.js"
+    }
 }
 JSON
 # Write typings to support Node16 module resolution 
@@ -14,7 +17,10 @@ TYPESCRIPT
 cat >dist/esm/package.json <<JSON
 {
     "type": "module",
-    "types": "../types/index.d.ts"
+    "types": "../types/index.d.ts",
+    "browser": {
+        "./process/index.js": "./process/browser.js"
+    }
 }
 JSON
 # Write typings to support Node16 module resolution 

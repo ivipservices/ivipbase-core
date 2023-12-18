@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.EventStream = exports.EventPublisher = exports.EventSubscription = void 0;
-class EventSubscription {
+export class EventSubscription {
     /**
      * @param stop function that stops the subscription from receiving future events
      */
@@ -62,8 +59,7 @@ class EventSubscription {
         }
     }
 }
-exports.EventSubscription = EventSubscription;
-class EventPublisher {
+export class EventPublisher {
     /**
      *
      * @param publish function that publishes a new value to subscribers, return if there are any active subscribers
@@ -76,8 +72,7 @@ class EventPublisher {
         this.cancel = cancel;
     }
 }
-exports.EventPublisher = EventPublisher;
-class EventStream {
+export class EventStream {
     constructor(eventPublisherCallback) {
         const subscribers = [];
         let noMoreSubscribersCallback;
@@ -180,5 +175,4 @@ class EventStream {
         eventPublisherCallback(publisher);
     }
 }
-exports.EventStream = EventStream;
 //# sourceMappingURL=Subscription.js.map

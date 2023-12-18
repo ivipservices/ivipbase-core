@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 function runCallback(callback, data) {
     try {
         callback(data);
@@ -10,7 +8,7 @@ function runCallback(callback, data) {
 }
 const _subscriptions = Symbol("subscriptions");
 const _oneTimeEvents = Symbol("oneTimeEvents");
-class SimpleEventEmitter {
+export default class SimpleEventEmitter {
     constructor() {
         this[_subscriptions] = [];
         this[_oneTimeEvents] = new Map();
@@ -88,5 +86,4 @@ class SimpleEventEmitter {
         });
     }
 }
-exports.default = SimpleEventEmitter;
 //# sourceMappingURL=SimpleEventEmitter.js.map

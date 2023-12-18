@@ -1,14 +1,8 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DataBase = exports.DataBaseSettings = void 0;
-const SimpleEventEmitter_1 = __importDefault(require("../Lib/SimpleEventEmitter.js"));
-const reference_1 = require("./data/reference.js");
-const DebugLogger_1 = __importDefault(require("../Lib/DebugLogger.js"));
-const TypeMappings_1 = __importDefault(require("../Lib/TypeMappings.js"));
-class DataBaseSettings {
+import SimpleEventEmitter from "../Lib/SimpleEventEmitter.js";
+import { DataReference, DataReferenceQuery } from "./reference.js";
+import DebugLogger from "../Lib/DebugLogger.js";
+import TypeMappings from "../Lib/TypeMappings.js";
+export class DataBaseSettings {
     constructor(options) {
         /**
          * What level to use for console logging.
@@ -38,17 +32,16 @@ class DataBaseSettings {
         }
     }
 }
-exports.DataBaseSettings = DataBaseSettings;
-class DataBase extends SimpleEventEmitter_1.default {
+export class DataBase extends SimpleEventEmitter {
     constructor(dbname, options = {}) {
         super();
         this._ready = false;
         options = new DataBaseSettings(options);
         this.name = dbname;
         // Setup console logging
-        this.debug = new DebugLogger_1.default(options.logLevel, `[${dbname}]`);
+        this.debug = new DebugLogger(options.logLevel, `[${dbname}]`);
         // Setup type mapping functionality
-        this.types = new TypeMappings_1.default(this);
+        this.types = new TypeMappings(this);
         this.once("ready", () => {
             // console.log(`database "${dbname}" (${this.constructor.name}) is ready to use`);
             this._ready = true;
@@ -75,7 +68,7 @@ class DataBase extends SimpleEventEmitter_1.default {
      * @returns reference to the requested node
      */
     ref(path) {
-        return new reference_1.DataReference(this, path);
+        return new DataReference(this, path);
     }
     /**
      * Get a reference to the root database node
@@ -90,8 +83,8 @@ class DataBase extends SimpleEventEmitter_1.default {
      * @returns query for the requested node
      */
     query(path) {
-        const ref = new reference_1.DataReference(this, path);
-        return new reference_1.DataReferenceQuery(ref);
+        const ref = new DataReference(this, path);
+        return new DataReferenceQuery(ref);
     }
     get schema() {
         return {
@@ -110,6 +103,5 @@ class DataBase extends SimpleEventEmitter_1.default {
         };
     }
 }
-exports.DataBase = DataBase;
-exports.default = DataBase;
+export default DataBase;
 //# sourceMappingURL=index.js.map

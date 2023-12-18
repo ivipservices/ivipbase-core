@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ascii85 = void 0;
 function c(input, length, result) {
     const b = [0, 0, 0, 0, 0];
     for (let i = 0; i < length; i += 4) {
@@ -33,7 +30,7 @@ function encode(arr) {
     ret = "<~" + ret + "~>";
     return ret;
 }
-exports.ascii85 = {
+export const ascii85 = {
     encode: function (arr) {
         if (arr instanceof ArrayBuffer) {
             arr = new Uint8Array(arr, 0, arr.byteLength);
@@ -75,5 +72,5 @@ exports.ascii85 = {
         return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
     },
 };
-exports.default = exports.ascii85;
+export default ascii85;
 //# sourceMappingURL=Ascii85.js.map

@@ -1,21 +1,16 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const Utils_1 = require("./Utils.js");
-const PathInfo_1 = __importDefault(require("./PathInfo.js"));
-const reference_1 = require("../DataBase/data/reference.js");
-const snapshot_1 = require("../DataBase/data/snapshot.js");
+import { cloneObject } from "./Utils.js";
+import PathInfo from "./PathInfo.js";
+import { DataReference } from "../DataBase/reference.js";
+import { DataSnapshot } from "../DataBase/snapshot.js";
 /**
  * (for internal use) - gets the mapping set for a specific path
  */
 function get(mappings, path) {
     // path points to the mapped (object container) location
     path = path.replace(/^\/|\/$/g, ""); // trim slashes
-    const keys = PathInfo_1.default.getPathKeys(path);
+    const keys = PathInfo.getPathKeys(path);
     const mappedPath = Object.keys(mappings).find((mpath) => {
-        const mkeys = PathInfo_1.default.getPathKeys(mpath);
+        const mkeys = PathInfo.getPathKeys(mpath);
         if (mkeys.length !== keys.length) {
             return false; // Can't be a match
         }
@@ -36,7 +31,7 @@ function get(mappings, path) {
  */
 function map(mappings, path) {
     // path points to the object location, its parent should have the mapping
-    const targetPath = PathInfo_1.default.get(path).parentPath;
+    const targetPath = PathInfo.get(path).parentPath;
     if (targetPath === null) {
         return;
     }
@@ -53,14 +48,14 @@ function mapDeep(mappings, entryPath) {
     // mappingPath: "users/*/posts"
     entryPath = entryPath.replace(/^\/|\/$/g, ""); // trim slashes
     // Start with current path's parent node
-    const pathInfo = PathInfo_1.default.get(entryPath);
+    const pathInfo = PathInfo.get(entryPath);
     const startPath = pathInfo.parentPath;
-    const keys = startPath ? PathInfo_1.default.getPathKeys(startPath) : [];
+    const keys = startPath ? PathInfo.getPathKeys(startPath) : [];
     // Every path that starts with startPath, is a match
     // TODO: refactor to return Object.keys(mappings),filter(...)
     const matches = Object.keys(mappings).reduce((m, mpath) => {
         //const mkeys = mpath.length > 0 ? mpath.split("/") : [];
-        const mkeys = PathInfo_1.default.getPathKeys(mpath);
+        const mkeys = PathInfo.getPathKeys(mpath);
         if (mkeys.length < keys.length) {
             return m; // Can't be a match
         }
@@ -99,24 +94,24 @@ function process(db, mappings, path, obj, action) {
     if (obj === null || typeof obj !== "object") {
         return obj;
     }
-    const keys = PathInfo_1.default.getPathKeys(path); // path.length > 0 ? path.split("/") : [];
+    const keys = PathInfo.getPathKeys(path); // path.length > 0 ? path.split("/") : [];
     const m = mapDeep(mappings, path);
     const changes = [];
-    m.sort((a, b) => (PathInfo_1.default.getPathKeys(a.path).length > PathInfo_1.default.getPathKeys(b.path).length ? -1 : 1)); // Deepest paths first
+    m.sort((a, b) => (PathInfo.getPathKeys(a.path).length > PathInfo.getPathKeys(b.path).length ? -1 : 1)); // Deepest paths first
     m.forEach((mapping) => {
-        const mkeys = PathInfo_1.default.getPathKeys(mapping.path); //mapping.path.length > 0 ? mapping.path.split("/") : [];
+        const mkeys = PathInfo.getPathKeys(mapping.path); //mapping.path.length > 0 ? mapping.path.split("/") : [];
         mkeys.push("*");
         const mTrailKeys = mkeys.slice(keys.length);
         if (mTrailKeys.length === 0) {
-            const vars = PathInfo_1.default.extractVariables(mapping.path, path);
-            const ref = new reference_1.DataReference(db, path, vars);
+            const vars = PathInfo.extractVariables(mapping.path, path);
+            const ref = new DataReference(db, path, vars);
             if (action === "serialize") {
                 // serialize this object
                 obj = mapping.type.serialize(obj, ref);
             }
             else if (action === "deserialize") {
                 // deserialize this object
-                const snap = new snapshot_1.DataSnapshot(ref, obj);
+                const snap = new DataSnapshot(ref, obj);
                 obj = mapping.type.deserialize(snap);
             }
             return;
@@ -151,9 +146,9 @@ function process(db, mappings, path, obj, action) {
                 }
             }
             children.forEach((child) => {
-                const childPath = PathInfo_1.default.getChildPath(parentPath, child.key);
-                const vars = PathInfo_1.default.extractVariables(mapping.path, childPath);
-                const ref = new reference_1.DataReference(db, childPath, vars);
+                const childPath = PathInfo.getChildPath(parentPath, child.key);
+                const vars = PathInfo.extractVariables(mapping.path, childPath);
+                const ref = new DataReference(db, childPath, vars);
                 if (keys.length === 1) {
                     // TODO: this alters the existing object, we must build our own copy!
                     if (action === "serialize") {
@@ -167,7 +162,7 @@ function process(db, mappings, path, obj, action) {
                     }
                     else if (action === "deserialize") {
                         // deserialize this object
-                        const snap = new snapshot_1.DataSnapshot(ref, child.val);
+                        const snap = new DataSnapshot(ref, child.val);
                         parent[child.key] = mapping.type.deserialize(snap);
                     }
                 }
@@ -184,7 +179,7 @@ function process(db, mappings, path, obj, action) {
         // will become plain objects without functions, and we can restore
         // the original object's values if any mappings were processed.
         // This will also prevent circular references
-        obj = (0, Utils_1.cloneObject)(obj);
+        obj = cloneObject(obj);
         if (changes.length > 0) {
             // Restore the changes made to the original object
             changes.forEach((change) => {
@@ -195,7 +190,7 @@ function process(db, mappings, path, obj, action) {
     return obj;
 }
 const _mappings = Symbol("mappings");
-class TypeMappings {
+export default class TypeMappings {
     constructor(db) {
         this.db = db;
         this[_mappings] = {};
@@ -217,9 +212,9 @@ class TypeMappings {
      * 1) `static create(snap: DataSnapshot)` and 2) `serialize(ref: DataReference)`. See example
      * @param options (optional) You can specify the functions to use to
      * serialize and/or instantiate your class. If you do not specificy a creator (constructor) method,
-     * AceBase will call `YourClass.create(snapshot)` method if it exists, or create an instance of
+     * IvipBase will call `YourClass.create(snapshot)` method if it exists, or create an instance of
      * YourClass with `new YourClass(snapshot)`.
-     * If you do not specifiy a serializer method, AceBase will call `YourClass.prototype.serialize(ref)`
+     * If you do not specifiy a serializer method, IvipBase will call `YourClass.prototype.serialize(ref)`
      * if it exists, or tries storing your object's fields unaltered. NOTE: `this` in your creator
      * function will point to `YourClass`, and `this` in your serializer function will point to the
      * `instance` of `YourClass`.
@@ -333,5 +328,4 @@ class TypeMappings {
         return process(this.db, this[_mappings], path, obj, "deserialize");
     }
 }
-exports.default = TypeMappings;
 //# sourceMappingURL=TypeMappings.js.map

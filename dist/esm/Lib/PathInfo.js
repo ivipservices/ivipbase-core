@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PathInfo = exports.PathReference = void 0;
-class PathReference {
+export class PathReference {
     /**
      * Creates a reference to a path that can be stored in the database. Use this to create cross-references to other data in your database
      * @param path
@@ -10,7 +7,6 @@ class PathReference {
         this.path = path;
     }
 }
-exports.PathReference = PathReference;
 function getPathKeys(path) {
     path = path.replace(/\[/g, "/[").replace(/^\/+/, "").replace(/\/+$/, ""); // Replace [ with /[, remove leading slashes, remove trailing slashes
     if (path.length === 0) {
@@ -21,7 +17,7 @@ function getPathKeys(path) {
         return key.startsWith("[") ? parseInt(key.slice(1, -1)) : key;
     });
 }
-class PathInfo {
+export class PathInfo {
     static get(path) {
         return new PathInfo(path);
     }
@@ -55,7 +51,7 @@ class PathInfo {
         return new PathInfo(parentKeys);
     }
     get parentPath() {
-        return this.keys.length === 0 ? null : this.parent.path;
+        return this.keys.length === 0 ? null : this.parent?.path ?? null;
     }
     child(childKey) {
         if (typeof childKey === "string") {
@@ -65,9 +61,9 @@ class PathInfo {
             // Allow expansion of a child path (eg "user/name") into equivalent `child('user').child('name')`
             const keys = getPathKeys(childKey);
             keys.forEach((key, index) => {
-                // Check AceBase key rules here so they will be enforced regardless of storage target.
+                // Check IvipBase key rules here so they will be enforced regardless of storage target.
                 // This prevents specific keys to be allowed in one environment (eg browser), but then
-                // refused upon syncing to a binary AceBase db. Fixes https://github.com/appy-one/acebase/issues/172
+                // refused upon syncing to a binary IvipBase db. Fixes https://github.com/appy-one/acebase/issues/172
                 if (typeof key !== "string") {
                     return;
                 }
@@ -293,19 +289,18 @@ class PathInfo {
         if (this.path === "") {
             return false;
         } // If our path is the root, it's nobody's child...
-        return this.parent.equals(other);
+        return this.parent?.equals(other) ?? false;
     }
     /**
      * Checks if a given path is its parent, eg "posts/1234" is the parent of "posts/1234/title"
      */
     isParentOf(otherPath) {
         const other = otherPath instanceof PathInfo ? otherPath : new PathInfo(otherPath);
-        if (other.path === "") {
+        if (other.path === "" || !other.parent) {
             return false;
         } // If the other path is the root, this path cannot be its parent
         return this.equals(other.parent);
     }
 }
-exports.PathInfo = PathInfo;
-exports.default = PathInfo;
+export default PathInfo;
 //# sourceMappingURL=PathInfo.js.map

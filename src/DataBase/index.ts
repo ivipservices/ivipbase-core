@@ -1,6 +1,6 @@
 import SimpleEventEmitter from "../Lib/SimpleEventEmitter";
-import { DataReference, DataReferenceQuery } from "./data/reference";
-import LocalStorage from "../LocalStorage";
+import { DataReference, DataReferenceQuery } from "./reference";
+import Api from "./api";
 import { LoggingLevel } from "../Types";
 import DebugLogger from "../Lib/DebugLogger";
 import TypeMappings from "../Lib/TypeMappings";
@@ -42,7 +42,7 @@ export class DataBaseSettings {
 export abstract class DataBase extends SimpleEventEmitter {
 	protected _ready = false;
 
-	storage!: LocalStorage;
+	storage!: Api;
 
 	/**
 	 * @internal (for internal use)

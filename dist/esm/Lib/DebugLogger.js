@@ -1,8 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => { };
-class DebugLogger {
+export default class DebugLogger {
     constructor(level = "log", prefix = "") {
         this.level = level;
         this.prefix = prefix;
@@ -25,5 +23,4 @@ class DebugLogger {
         };
     }
 }
-exports.default = DebugLogger;
 //# sourceMappingURL=DebugLogger.js.map

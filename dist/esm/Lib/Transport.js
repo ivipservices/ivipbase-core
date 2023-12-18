@@ -1,36 +1,7 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.deserialize2 = exports.serialize2 = exports.serialize = exports.detectSerializeVersion = exports.deserialize = void 0;
-const Ascii85_1 = __importDefault(require("./Ascii85.js"));
-const PartialArray_1 = require("./PartialArray.js");
-const PathInfo_1 = __importStar(require("./PathInfo.js"));
-const Utils_1 = require("./Utils.js");
+import ascii85 from "./Ascii85.js";
+import { PartialArray } from "./PartialArray.js";
+import PathInfo, { PathReference } from "./PathInfo.js";
+import { cloneObject } from "./Utils.js";
 /*
     There are now 2 different serialization methods for transporting values.
 
@@ -67,7 +38,7 @@ const Utils_1 = require("./Utils.js");
  * @param data
  * @returns
  */
-const deserialize = (data) => {
+export const deserialize = (data) => {
     if (data.map === null || typeof data.map === "undefined") {
         if (typeof data.val === "undefined") {
             throw new Error("serialized value must have a val property");
@@ -81,16 +52,16 @@ const deserialize = (data) => {
         }
         else if (type === "binary") {
             // ascii85 encoded binary data
-            return Ascii85_1.default.decode(val);
+            return ascii85.decode(val);
         }
         else if (type === "reference") {
-            return new PathInfo_1.PathReference(val);
+            return new PathReference(val);
         }
         else if (type === "regexp") {
             return new RegExp(val.pattern, val.flags);
         }
         else if (type === "array") {
-            return new PartialArray_1.PartialArray(val);
+            return new PartialArray(val);
         }
         else if (type === "bigint") {
             return BigInt(val);
@@ -103,7 +74,7 @@ const deserialize = (data) => {
     }
     Object.keys(data.map).forEach((path) => {
         const type = data.map[path];
-        const keys = PathInfo_1.default.getPathKeys(path);
+        const keys = PathInfo.getPathKeys(path);
         let parent = data;
         let key = "val";
         let val = data.val;
@@ -116,13 +87,12 @@ const deserialize = (data) => {
     });
     return data.val;
 };
-exports.deserialize = deserialize;
 /**
  * Function to detect the used serialization method with for the given object
  * @param data
  * @returns
  */
-const detectSerializeVersion = (data) => {
+export const detectSerializeVersion = (data) => {
     if (typeof data !== "object" || data === null) {
         // This can only be v2, which allows primitive types to bypass serializing
         return 2;
@@ -139,25 +109,24 @@ const detectSerializeVersion = (data) => {
     }
     return 2;
 };
-exports.detectSerializeVersion = detectSerializeVersion;
 /**
  * Original serialization method using global `map` and `val` properties
  * @param data
  * @returns
  */
-const serialize = (obj) => {
+export const serialize = (obj) => {
     // Recursively find dates and binary data
-    if (obj === null || typeof obj !== "object" || obj instanceof Date || obj instanceof ArrayBuffer || obj instanceof PathInfo_1.PathReference || obj instanceof RegExp) {
+    if (obj === null || typeof obj !== "object" || obj instanceof Date || obj instanceof ArrayBuffer || obj instanceof PathReference || obj instanceof RegExp) {
         // Single value
-        const ser = (0, exports.serialize)({ value: obj });
+        const ser = serialize({ value: obj });
         return {
             map: ser.map?.value,
             val: ser.val.value,
         };
     }
-    obj = (0, Utils_1.cloneObject)(obj); // Make sure we don't alter the original object
+    obj = cloneObject(obj); // Make sure we don't alter the original object
     const process = (obj, mappings, prefix) => {
-        if (obj instanceof PartialArray_1.PartialArray) {
+        if (obj instanceof PartialArray) {
             mappings[prefix] = "array";
         }
         Object.keys(obj).forEach((key) => {
@@ -174,10 +143,10 @@ const serialize = (obj) => {
             }
             else if (val instanceof ArrayBuffer) {
                 // Serialize binary data with ascii85
-                obj[key] = Ascii85_1.default.encode(val); //ascii85.encode(Buffer.from(val)).toString();
+                obj[key] = ascii85.encode(val); //ascii85.encode(Buffer.from(val)).toString();
                 mappings[path] = "binary";
             }
-            else if (val instanceof PathInfo_1.PathReference) {
+            else if (val instanceof PathReference) {
                 obj[key] = val.path;
                 mappings[path] = "reference";
             }
@@ -199,13 +168,12 @@ const serialize = (obj) => {
     }
     return serialized;
 };
-exports.serialize = serialize;
 /**
  * New serialization method using inline `.type` and `.val` properties
  * @param obj
  * @returns
  */
-const serialize2 = (obj) => {
+export const serialize2 = (obj) => {
     // Recursively find data that needs serializing
     const getSerializedValue = (val) => {
         if (typeof val === "bigint") {
@@ -226,10 +194,10 @@ const serialize2 = (obj) => {
             // Serialize binary data with ascii85
             return {
                 ".type": "binary",
-                ".val": Ascii85_1.default.encode(val),
+                ".val": ascii85.encode(val),
             };
         }
-        else if (val instanceof PathInfo_1.PathReference) {
+        else if (val instanceof PathReference) {
             return {
                 ".type": "reference",
                 ".val": val.path,
@@ -256,7 +224,7 @@ const serialize2 = (obj) => {
             }
             else {
                 const copy = {}; //val instanceof Array ? [] : {} as SerializedValueV2;
-                if (val instanceof PartialArray_1.PartialArray) {
+                if (val instanceof PartialArray) {
                     // Mark the object as partial ("sparse") array
                     copy[".type"] = "array";
                 }
@@ -280,13 +248,12 @@ const serialize2 = (obj) => {
     }
     return serialized;
 };
-exports.serialize2 = serialize2;
 /**
  * New deserialization method using inline `.type` and `.val` properties
  * @param obj
  * @returns
  */
-const deserialize2 = (data) => {
+export const deserialize2 = (data) => {
     if (typeof data !== "object" || data === null) {
         // primitive value, not serialized
         return data;
@@ -298,7 +265,7 @@ const deserialize2 = (data) => {
             const copy = [];
             const arr = data;
             for (let i = 0; i < arr.length; i++) {
-                copy.push((0, exports.deserialize2)(arr[i]));
+                copy.push(deserialize2(arr[i]));
             }
             return copy;
         }
@@ -307,7 +274,7 @@ const deserialize2 = (data) => {
             const copy = {};
             const obj = data;
             for (const prop in obj) {
-                copy[prop] = (0, exports.deserialize2)(obj[prop]);
+                copy[prop] = deserialize2(obj[prop]);
             }
             return copy;
         }
@@ -323,10 +290,10 @@ const deserialize2 = (data) => {
             const arr = data;
             const copy = {};
             for (const index in arr) {
-                copy[index] = (0, exports.deserialize2)(arr[index]);
+                copy[index] = deserialize2(arr[index]);
             }
             delete copy[".type"];
-            return new PartialArray_1.PartialArray(copy);
+            return new PartialArray(copy);
         }
         else if (dataType === "date") {
             // Date was serialized as a string (UTC)
@@ -336,11 +303,11 @@ const deserialize2 = (data) => {
         else if (dataType === "binary") {
             // ascii85 encoded binary data
             const val = data[".val"];
-            return Ascii85_1.default.decode(val);
+            return ascii85.decode(val);
         }
         else if (dataType === "reference") {
             const val = data[".val"];
-            return new PathInfo_1.PathReference(val);
+            return new PathReference(val);
         }
         else if (dataType === "regexp") {
             const val = data[".val"];
@@ -355,5 +322,4 @@ const deserialize2 = (data) => {
     }
     throw new Error(`Unknown data type "${data[".type"]}" in serialized value`);
 };
-exports.deserialize2 = deserialize2;
 //# sourceMappingURL=Transport.js.map

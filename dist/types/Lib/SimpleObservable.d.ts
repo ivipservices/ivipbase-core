@@ -1,6 +1,6 @@
 import { CreateFunction, IObservableLike, ISubscription, SubscribeFunction } from "../Types";
 /**
- * rxjs is an optional dependency that only needs installing when any of AceBase's observe methods are used.
+ * rxjs is an optional dependency that only needs installing when any of IvipBase's observe methods are used.
  * If for some reason rxjs is not available (eg in test suite), we can provide a shim. This class is used when
  * `db.setObservable("shim")` is called
  */

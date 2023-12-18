@@ -7,7 +7,7 @@ let _observable: any;
 (async () => {
 	// Try pre-loading rxjs Observable
 	// Test availability in global scope first
-	const global = getGlobalObject();
+	const global: any = getGlobalObject();
 	if (typeof global.Observable !== "undefined") {
 		_observable = global.Observable;
 		return;
@@ -25,8 +25,8 @@ let _observable: any;
 export function getObservable<T = any>() {
 	if (_observable === SimpleObservable && !_shimRequested) {
 		console.warn(
-			"Using AceBase's simple Observable implementation because rxjs is not available. " +
-				'Add it to your project with "npm install rxjs", add it to AceBase using db.setObservable(Observable), ' +
+			"Using IvipBase's simple Observable implementation because rxjs is not available. " +
+				'Add it to your project with "npm install rxjs", add it to IvipBase using db.setObservable(Observable), ' +
 				'or call db.setObservable("shim") to suppress this warning',
 		);
 	}

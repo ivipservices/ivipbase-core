@@ -1,9 +1,8 @@
 export { DataBase, DataBaseSettings } from "./DataBase";
-export { default as LocalStorage } from "./LocalStorage";
+export { default as Api } from "./DataBase/api";
 export * as Types from "./Types";
-export { DataReference, DataReferenceQuery, DataRetrievalOptions, QueryDataRetrievalOptions, DataSnapshotsArray, DataReferencesArray } from "./DataBase/data/reference";
-export { DataSnapshot, MutationsDataSnapshot, IDataMutationsArray } from "./DataBase/data/snapshot";
-export { proxyAccess, OrderedCollectionProxy } from "./DataBase/data/proxy";
+export { DataReference, DataReferenceQuery, DataRetrievalOptions, QueryDataRetrievalOptions, DataSnapshotsArray, DataReferencesArray } from "./DataBase/reference";
+export { DataSnapshot, MutationsDataSnapshot, IDataMutationsArray } from "./DataBase/snapshot";
 export * as Lib from "./Lib";
 export { default as DebugLogger } from "./Lib/DebugLogger";
 export { default as ID } from "./Lib/ID";
