@@ -331,8 +331,9 @@ export declare class DataReference<T = any> {
      * @returns Retorna uma promise que é resolvida assim que todos os dados forem importados
      */
     import(read: StreamReadFunction, options?: {
-        format: string;
-        suppress_events: boolean;
+        format?: "json";
+        suppress_events?: boolean;
+        method?: "set" | "update" | "merge";
     }): Promise<void>;
     /**
      * Retorna um Observable RxJS que pode ser usado para observar

@@ -3,9 +3,9 @@ import type { DataSnapshot } from "../DataBase/snapshot";
 import type { EventStream } from "../Lib/Subscription";
 import type { ObjectDifferences } from "../Lib/Utils";
 import { ObjectCollection } from "../Lib/ObjectCollection";
-export type * as TypeLocalStorage from "./api";
-export type * as TypeSchema from "./schema";
-export type * as TypeTransport from "./transport";
+export type * from "./api";
+export type * from "./schema";
+export type * from "./transport";
 /**
  * Legacy (deprecated) IObjectCollection
  * @deprecated Use `ObjectCollection` instead

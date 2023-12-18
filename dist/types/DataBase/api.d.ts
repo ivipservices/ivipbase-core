@@ -1,6 +1,6 @@
 import SimpleEventEmitter from "../Lib/SimpleEventEmitter";
 import { EventSubscriptionCallback, EventSubscriptionSettings, StreamReadFunction, StreamWriteFunction } from "../Types";
-import { Query, QueryOptions, ReflectionNodeInfo, ReflectionType, SchemaInfo, ValueChange, ValueMutation } from "../Types/api";
+import { Query, QueryOptions, ReflectionChildrenInfo, ReflectionNodeInfo, ReflectionType, SchemaInfo, ValueChange, ValueMutation } from "../Types/api";
 export default abstract class Api extends SimpleEventEmitter {
     constructor();
     /**
@@ -15,18 +15,64 @@ export default abstract class Api extends SimpleEventEmitter {
      */
     subscribe(path: string, event: string, callback: EventSubscriptionCallback, settings?: EventSubscriptionSettings): void | Promise<void>;
     unsubscribe(path: string, event?: string, callback?: EventSubscriptionCallback): void | Promise<void>;
-    update(path: string, updates: any, options?: any): Promise<{
+    update(path: string, updates: any, options?: {
+        /**
+         * whether to suppress the execution of event subscriptions
+         * @default false
+         */
+        suppress_events?: boolean;
+        /**
+         * Context to be passed along with data events
+         * @default null
+         */
+        context?: any;
+    }): Promise<{
         cursor?: string;
     }>;
-    set(path: string, value: any, options?: any): Promise<{
+    set(path: string, value: any, options?: {
+        /**
+         * whether to suppress the execution of event subscriptions
+         * @default false
+         */
+        suppress_events?: boolean;
+        /**
+         * Context to be passed along with data events
+         * @default null
+         */
+        context?: any;
+    }): Promise<{
         cursor?: string;
     }>;
-    get(path: string, options?: any): Promise<{
+    get(path: string, options?: {
+        /**
+         * child keys (properties) to include
+         */
+        include?: string[];
+        /**
+         * chld keys (properties) to exclude
+         */
+        exclude?: string[];
+        /**
+         * whether to include child objects
+         */
+        child_objects?: boolean;
+    }): Promise<{
         value: any;
         context: any;
         cursor?: string;
     }>;
-    transaction(path: string, callback: (val: any) => any, options?: any): Promise<{
+    transaction(path: string, callback: (val: any) => any, options?: {
+        /**
+         * whether to suppress the execution of event subscriptions
+         * @default false
+         */
+        suppress_events?: boolean;
+        /**
+         * Context to be passed along with data events
+         * @default null
+         */
+        context?: any;
+    }): Promise<{
         cursor?: string;
     }>;
     exists(path: string): Promise<boolean>;
@@ -38,11 +84,18 @@ export default abstract class Api extends SimpleEventEmitter {
         context: any;
         stop(): Promise<void>;
     }>;
-    reflect(path: string, type: "children", args: any): Promise<ReflectionNodeInfo>;
+    reflect(path: string, type: "children", args: any): Promise<ReflectionChildrenInfo>;
     reflect(path: string, type: "info", args: any): Promise<ReflectionNodeInfo>;
     reflect(path: string, type: ReflectionType, args: any): Promise<any>;
-    export(path: string, write: StreamWriteFunction, options: any): Promise<void>;
-    import(path: string, read: StreamReadFunction, options: any): Promise<void>;
+    export(path: string, write: StreamWriteFunction, options?: {
+        format?: "json";
+        type_safe?: boolean;
+    }): Promise<void>;
+    import(path: string, read: StreamReadFunction, options?: {
+        format?: "json";
+        suppress_events?: boolean;
+        method?: "set" | "update" | "merge";
+    }): Promise<void>;
     setSchema(path: string, schema: Record<string, any> | string, warnOnly?: boolean): Promise<void>;
     getSchema(path: string): Promise<SchemaInfo>;
     getSchemas(): Promise<SchemaInfo[]>;

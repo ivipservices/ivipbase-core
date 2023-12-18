@@ -430,7 +430,7 @@ class DataReference {
                     const step = 100, limit = step;
                     let skip = 0;
                     const more = async () => {
-                        const { children } = await this.db.storage.reflect(this.path, "children", { limit, skip });
+                        const children = await this.db.storage.reflect(this.path, "children", { limit, skip });
                         if (children && "more" in children) {
                             children.list.forEach((child) => {
                                 const childRef = this.child(child.key);

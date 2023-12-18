@@ -59,9 +59,9 @@ export declare abstract class DataBase extends SimpleEventEmitter {
      */
     query(path: string): DataReferenceQuery;
     get schema(): {
-        get: (path: string) => Promise<import("../Types/api").SchemaInfo>;
+        get: (path: string) => Promise<import("../Types").SchemaInfo>;
         set: (path: string, schema: Record<string, unknown> | string, warnOnly?: boolean) => Promise<void>;
-        all: () => Promise<import("../Types/api").SchemaInfo[]>;
+        all: () => Promise<import("../Types").SchemaInfo[]>;
         check: (path: string, value: unknown, isUpdate: boolean) => Promise<{
             ok: boolean;
             reason?: string | undefined;

@@ -112,6 +112,11 @@ export interface ReflectionNodeInfo {
 	};
 }
 
+export interface ReflectionChildrenInfo {
+	more: boolean;
+	list: Pick<ReflectionNodeInfo, "key" | "type" | "value" | "address">[];
+}
+
 export interface SchemaInfo {
 	path: string;
 	schema: Record<string, any> | string;

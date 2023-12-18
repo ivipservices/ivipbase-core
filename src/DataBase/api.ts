@@ -1,6 +1,6 @@
 import SimpleEventEmitter from "../Lib/SimpleEventEmitter";
 import { EventSubscriptionCallback, EventSubscriptionSettings, StreamReadFunction, StreamWriteFunction } from "../Types";
-import { Query, QueryOptions, ReflectionNodeInfo, ReflectionType, SchemaInfo, ValueChange, ValueMutation } from "../Types/api";
+import { Query, QueryOptions, ReflectionChildrenInfo, ReflectionNodeInfo, ReflectionType, SchemaInfo, ValueChange, ValueMutation } from "../Types/api";
 
 class NotImplementedError extends Error {
 	constructor(name: string) {
@@ -34,19 +34,80 @@ export default abstract class Api extends SimpleEventEmitter {
 		throw new NotImplementedError("unsubscribe");
 	}
 
-	update(path: string, updates: any, options?: any): Promise<{ cursor?: string }> {
+	update(
+		path: string,
+		updates: any,
+		options?: {
+			/**
+			 * whether to suppress the execution of event subscriptions
+			 * @default false
+			 */
+			suppress_events?: boolean;
+			/**
+			 * Context to be passed along with data events
+			 * @default null
+			 */
+			context?: any;
+		},
+	): Promise<{ cursor?: string }> {
 		throw new NotImplementedError("update");
 	}
 
-	set(path: string, value: any, options?: any): Promise<{ cursor?: string }> {
+	set(
+		path: string,
+		value: any,
+		options?: {
+			/**
+			 * whether to suppress the execution of event subscriptions
+			 * @default false
+			 */
+			suppress_events?: boolean;
+			/**
+			 * Context to be passed along with data events
+			 * @default null
+			 */
+			context?: any;
+		},
+	): Promise<{ cursor?: string }> {
 		throw new NotImplementedError("set");
 	}
 
-	get(path: string, options?: any): Promise<{ value: any; context: any; cursor?: string }> {
+	get(
+		path: string,
+		options?: {
+			/**
+			 * child keys (properties) to include
+			 */
+			include?: string[];
+			/**
+			 * chld keys (properties) to exclude
+			 */
+			exclude?: string[];
+			/**
+			 * whether to include child objects
+			 */
+			child_objects?: boolean;
+		},
+	): Promise<{ value: any; context: any; cursor?: string }> {
 		throw new NotImplementedError("get");
 	}
 
-	transaction(path: string, callback: (val: any) => any, options?: any): Promise<{ cursor?: string }> {
+	transaction(
+		path: string,
+		callback: (val: any) => any,
+		options?: {
+			/**
+			 * whether to suppress the execution of event subscriptions
+			 * @default false
+			 */
+			suppress_events?: boolean;
+			/**
+			 * Context to be passed along with data events
+			 * @default null
+			 */
+			context?: any;
+		},
+	): Promise<{ cursor?: string }> {
 		throw new NotImplementedError("transaction");
 	}
 
@@ -66,18 +127,26 @@ export default abstract class Api extends SimpleEventEmitter {
 		throw new NotImplementedError("query");
 	}
 
-	reflect(path: string, type: "children", args: any): Promise<ReflectionNodeInfo>;
+	reflect(path: string, type: "children", args: any): Promise<ReflectionChildrenInfo>;
 	reflect(path: string, type: "info", args: any): Promise<ReflectionNodeInfo>;
 	reflect(path: string, type: ReflectionType, args: any): Promise<any>;
 	reflect(path: string, type: ReflectionType, args: any): Promise<any> {
 		throw new NotImplementedError("reflect");
 	}
 
-	export(path: string, write: StreamWriteFunction, options: any): Promise<void> {
+	export(path: string, write: StreamWriteFunction, options?: { format?: "json"; type_safe?: boolean }): Promise<void> {
 		throw new NotImplementedError("export");
 	}
 
-	import(path: string, read: StreamReadFunction, options: any): Promise<void> {
+	import(
+		path: string,
+		read: StreamReadFunction,
+		options?: {
+			format?: "json";
+			suppress_events?: boolean;
+			method?: "set" | "update" | "merge";
+		},
+	): Promise<void> {
 		throw new NotImplementedError("import");
 	}
 

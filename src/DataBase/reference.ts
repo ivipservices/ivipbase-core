@@ -576,7 +576,7 @@ export class DataReference<T = any> {
 						limit = step;
 					let skip = 0;
 					const more = async () => {
-						const { children } = await this.db.storage.reflect(this.path, "children", { limit, skip });
+						const children = await this.db.storage.reflect(this.path, "children", { limit, skip });
 						if (children && "more" in children) {
 							children.list.forEach((child) => {
 								const childRef = this.child(child.key);
@@ -665,7 +665,7 @@ export class DataReference<T = any> {
 		}
 
 		const options = new DataRetrievalOptions(typeof optionsOrCallback === "object" ? optionsOrCallback : { cache_mode: "allow" });
-		const promise = this.db.storage.get(this.path, options).then((result) => {
+		const promise = this.db.storage.get(this.path, options as any).then((result) => {
 			const isNewApiResult = "context" in result && "value" in result;
 			if (!isNewApiResult) {
 				// A versão do pacote acebase-core foi atualizada, mas os pacotes acebase ou acebase-client não foram? Aviso, mas não lance um erro.
@@ -884,7 +884,7 @@ export class DataReference<T = any> {
 			await this.db.ready();
 		}
 		const writeFn = typeof write === "function" ? write : write.write.bind(write);
-		return this.db.storage.export(this.path, writeFn, options);
+		return this.db.storage.export(this.path, writeFn, options as any);
 	}
 
 	/**
@@ -893,14 +893,21 @@ export class DataReference<T = any> {
 	 * @param options Atualmente, o único formato suportado é json
 	 * @returns Retorna uma promise que é resolvida assim que todos os dados forem importados
 	 */
-	async import(read: StreamReadFunction, options = { format: "json", suppress_events: false }): Promise<void> {
+	async import(
+		read: StreamReadFunction,
+		options: {
+			format?: "json";
+			suppress_events?: boolean;
+			method?: "set" | "update" | "merge";
+		} = { format: "json", suppress_events: false },
+	): Promise<void> {
 		if (this.isWildcardPath) {
 			throw new Error(`Cannot import to wildcard path "/${this.path}"`);
 		}
 		if (!this.db.isReady) {
 			await this.db.ready();
 		}
-		return this.db.storage.import(this.path, read, options);
+		return this.db.storage.import(this.path, read, options as any);
 	}
 
 	/**
