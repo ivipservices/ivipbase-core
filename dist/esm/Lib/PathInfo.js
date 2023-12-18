@@ -1,6 +1,6 @@
 export class PathReference {
     /**
-     * Creates a reference to a path that can be stored in the database. Use this to create cross-references to other data in your database
+     * Cria uma referência a um caminho que pode ser armazenado no banco de dados. Use isso para criar referências cruzadas para outros dados em seu banco de dados.
      * @param path
      */
     constructor(path) {
@@ -8,7 +8,7 @@ export class PathReference {
     }
 }
 function getPathKeys(path) {
-    path = path.replace(/\[/g, "/[").replace(/^\/+/, "").replace(/\/+$/, ""); // Replace [ with /[, remove leading slashes, remove trailing slashes
+    path = path.replace(/\[/g, "/[").replace(/^\/+/, "").replace(/\/+$/, ""); // Substitua `[` por `/[`, remova barras invertidas iniciais, remova barras invertidas finais
     if (path.length === 0) {
         return [""];
     }
@@ -58,12 +58,12 @@ export class PathInfo {
             if (childKey.length === 0) {
                 throw new Error(`child key for path "${this.path}" cannot be empty`);
             }
-            // Allow expansion of a child path (eg "user/name") into equivalent `child('user').child('name')`
+            // Permitir a expansão de um caminho filho (por exemplo, "user/name") para o equivalente a `child('user').child('name')`
             const keys = getPathKeys(childKey);
             keys.forEach((key, index) => {
-                // Check IvipBase key rules here so they will be enforced regardless of storage target.
-                // This prevents specific keys to be allowed in one environment (eg browser), but then
-                // refused upon syncing to a binary IvipBase db. Fixes https://github.com/appy-one/acebase/issues/172
+                // Verifique as regras de chave do IvipBase aqui para que sejam aplicadas independentemente do destino de armazenamento.
+                // Isso impede que chaves específicas sejam permitidas em um ambiente (por exemplo, navegador), mas depois
+                // recusadas ao sincronizar com um banco de dados binário IvipBase.
                 if (typeof key !== "string") {
                     return;
                 }
@@ -90,31 +90,31 @@ export class PathInfo {
         return this.keys;
     }
     /**
-     * If varPath contains variables or wildcards, it will return them with the values found in fullPath
-     * @param {string} varPath path containing variables such as * and $name
-     * @param {string} fullPath real path to a node
-     * @returns {{ [index: number]: string|number, [variable: string]: string|number }} returns an array-like object with all variable values. All named variables are also set on the array by their name (eg vars.uid and vars.$uid)
+     * Se varPath contiver variáveis ou wildcards, ele as retornará com os valores encontrados em fullPath
+     * @param {string} varPath caminho contendo variáveis como * e $name
+     * @param {string} fullPath caminho real para um nó
+     * @returns {{ [index: number]: string|number, [variable: string]: string|number }} retorna um objeto semelhante a uma matriz com todos os valores de variáveis. Todas as variáveis nomeadas também são definidas no objeto pelo nome delas (por exemplo, vars.uid e vars.$uid)
      * @example
      * PathInfo.extractVariables('users/$uid/posts/$postid', 'users/ewout/posts/post1/title') === {
      *  0: 'ewout',
      *  1: 'post1',
-     *  uid: 'ewout', // or $uid
-     *  postid: 'post1' // or $postid
+     *  uid: 'ewout', // ou $uid
+     *  postid: 'post1' // ou $postid
      * };
      *
      * PathInfo.extractVariables('users/*\/posts/*\/$property', 'users/ewout/posts/post1/title') === {
      *  0: 'ewout',
      *  1: 'post1',
      *  2: 'title',
-     *  property: 'title' // or $property
+     *  property: 'title' // ou $property
      * };
      *
      * PathInfo.extractVariables('users/$user/friends[*]/$friend', 'users/dora/friends[4]/diego') === {
      *  0: 'dora',
      *  1: 4,
      *  2: 'diego',
-     *  user: 'dora', // or $user
-     *  friend: 'diego' // or $friend
+     *  user: 'dora', // ou $user
+     *  friend: 'diego' // ou $friend
      * };
      */
     static extractVariables(varPath, fullPath) {
@@ -151,7 +151,7 @@ export class PathInfo {
         return variables;
     }
     /**
-     * If varPath contains variables or wildcards, it will return a path with the variables replaced by the keys found in fullPath.
+     * Se varPath contiver variáveis ou wildcards, ele retornará um caminho com as variáveis substituídas pelas chaves encontradas em fullPath.
      * @example
      * PathInfo.fillVariables('users/$uid/posts/$postid', 'users/ewout/posts/post1/title') === 'users/ewout/posts/post1'
      */
@@ -187,9 +187,9 @@ export class PathInfo {
         return mergedPath;
     }
     /**
-     * Replaces all variables in a path with the values in the vars argument
-     * @param varPath path containing variables
-     * @param vars variables object such as one gotten from PathInfo.extractVariables
+     * Substitui todas as variáveis em um caminho pelos valores no argumento vars
+     * @param varPath caminho contendo variáveis
+     * @param vars objeto de variáveis, como aquele obtido a partir de PathInfo.extractVariables
      */
     static fillVariables2(varPath, vars) {
         if (typeof vars !== "object" || Object.keys(vars).length === 0) {
@@ -208,7 +208,7 @@ export class PathInfo {
         return targetPath;
     }
     /**
-     * Checks if a given path matches this path, eg "posts/*\/title" matches "posts/12344/title" and "users/123/name" matches "users/$uid/name"
+     * Verifica se um caminho dado corresponde a este caminho, por exemplo, "posts/*\/title" corresponde a "posts/12344/title" e "users/123/name" corresponde a "users/$uid/name"
      */
     equals(otherPath) {
         const other = otherPath instanceof PathInfo ? otherPath : new PathInfo(otherPath);
@@ -224,7 +224,7 @@ export class PathInfo {
         });
     }
     /**
-     * Checks if a given path is an ancestor, eg "posts" is an ancestor of "posts/12344/title"
+     * Verifica se um caminho dado é um ancestral, por exemplo, "posts" é um ancestral de "posts/12344/title"
      */
     isAncestorOf(descendantPath) {
         const descendant = descendantPath instanceof PathInfo ? descendantPath : new PathInfo(descendantPath);
@@ -243,7 +243,7 @@ export class PathInfo {
         });
     }
     /**
-     * Checks if a given path is a descendant, eg "posts/1234/title" is a descendant of "posts"
+     * Verifica se um caminho dado é um descendente, por exemplo, "posts/1234/title" é um descendente de "posts"
      */
     isDescendantOf(ancestorPath) {
         const ancestor = ancestorPath instanceof PathInfo ? ancestorPath : new PathInfo(ancestorPath);
@@ -262,8 +262,8 @@ export class PathInfo {
         });
     }
     /**
-     * Checks if the other path is on the same trail as this path. Paths on the same trail if they share a
-     * common ancestor. Eg: "posts" is on the trail of "posts/1234/title" and vice versa.
+     * Verifica se o outro caminho está na mesma trilha que este caminho. Caminhos estão na mesma trilha se compartilharem um
+     * ancestral comum. Por exemplo, "posts" está na trilha de "posts/1234/title" e vice-versa.
      */
     isOnTrailOf(otherPath) {
         const other = otherPath instanceof PathInfo ? otherPath : new PathInfo(otherPath);
@@ -282,23 +282,23 @@ export class PathInfo {
         });
     }
     /**
-     * Checks if a given path is a direct child, eg "posts/1234/title" is a child of "posts/1234"
+     * Verifica se um determinado caminho é um filho direto, por exemplo, "posts/1234/title" é um filho de "posts/1234"
      */
     isChildOf(otherPath) {
         const other = otherPath instanceof PathInfo ? otherPath : new PathInfo(otherPath);
         if (this.path === "") {
             return false;
-        } // If our path is the root, it's nobody's child...
+        } // Se nosso caminho for a raiz, ele não é filho de ninguém...
         return this.parent?.equals(other) ?? false;
     }
     /**
-     * Checks if a given path is its parent, eg "posts/1234" is the parent of "posts/1234/title"
+     * Verifica se um determinado caminho é seu pai, por exemplo, "posts/1234" é o pai de "posts/1234/title"
      */
     isParentOf(otherPath) {
         const other = otherPath instanceof PathInfo ? otherPath : new PathInfo(otherPath);
         if (other.path === "" || !other.parent) {
             return false;
-        } // If the other path is the root, this path cannot be its parent
+        } // Verifica se um determinado caminho é seu pai, por exemplo, "posts/1234" é o pai de "posts/1234/title"
         return this.equals(other.parent);
     }
 }

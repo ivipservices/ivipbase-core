@@ -647,8 +647,8 @@ export class DataReference {
                     const key = trailKeys.shift();
                     if (typeof key === "string" || typeof key === "number") {
                         if (!(key in target)) {
-                            // Happens if initial loaded data did not include / excluded this data,
-                            // or we missed out on an event
+                            // Ocorre se os dados carregados inicialmente não incluíram / excluíram esses dados,
+                            // ou se perdemos um evento
                             target[key] = typeof trailKeys[0] === "number" ? [] : {};
                         }
                         target = target[key];
@@ -658,18 +658,18 @@ export class DataReference {
                 const newValue = snap.val();
                 if (typeof prop === "string" || typeof prop === "number") {
                     if (newValue === null) {
-                        // Remove it
+                        // Remova isso
                         target instanceof Array && typeof prop === "number" ? target.splice(prop, 1) : delete target[prop];
                     }
                     else {
-                        // Set or update it
+                        // Defina ou atualize isso
                         target[prop] = newValue;
                     }
                 }
                 observer.next(cache);
             };
-            this.on("mutated", updateCache); // TODO: Refactor to 'mutations' event instead
-            // Return unsubscribe function
+            this.on("mutated", updateCache); // TODO: Refatorar para o evento 'mutations' em vez disso
+            // Retornar a função de cancelamento da inscrição
             return () => {
                 this.off("mutated", updateCache);
             };
@@ -686,29 +686,29 @@ export class DataReference {
         if (typeof callback !== "function") {
             throw new TypeError("No callback function given");
         }
-        // Get all children through reflection. This could be tweaked further using paging
-        const { children } = await this.reflect("children", { limit: 0, skip: 0 }); // Gets ALL child keys
+        // Obtenha todos os filhos por meio de reflexão. Isso pode ser ajustado ainda mais usando paginação
+        const { children } = await this.reflect("children", { limit: 0, skip: 0 }); // Obtém TODAS as chaves dos filhos
         const summary = {
             canceled: false,
             total: children && "list" in children ? children?.list.length : 0,
             processed: 0,
         };
-        // Iterate through all children until callback returns false
+        // Iterar por todos os filhos até que a função de retorno de chamada retorne false
         if (children && "list" in children) {
             for (let i = 0; i < children.list.length; i++) {
                 const key = children.list[i].key;
-                // Get child data
+                // Obter dados do filho
                 const snapshot = await this.child(key).get(options);
                 summary.processed++;
                 if (!snapshot || !snapshot.exists()) {
-                    // Was removed in the meantime, skip
+                    // Foi removido nesse meio tempo, pule
                     continue;
                 }
-                // Run callback
+                // Executar a função de retorno de chamada
                 const result = await callback(snapshot);
                 if (result === false) {
                     summary.canceled = true;
-                    break; // Stop looping
+                    break; // Parar o loop
                 }
             }
         }
@@ -727,7 +727,7 @@ export class DataReference {
 }
 export class QueryDataRetrievalOptions extends DataRetrievalOptions {
     /**
-     * @param options Options for data retrieval, allows selective loading of object properties
+     * @param options Opções para recuperação de dados, permite o carregamento seletivo de propriedades de objeto
      */
     constructor(options) {
         super(options);
@@ -759,7 +759,7 @@ export class DataReferencesArray extends Array {
 }
 export class DataReferenceQuery {
     /**
-     * Creates a query on a reference
+     * Cria uma consulta em uma referência
      */
     constructor(ref) {
         this.ref = ref;
@@ -772,12 +772,12 @@ export class DataReferenceQuery {
         };
     }
     /**
-     * Applies a filter to the children of the refence being queried.
-     * If there is an index on the property key being queried, it will be used
-     * to speed up the query
-     * @param key property to test value of
-     * @param op operator to use
-     * @param compare value to compare with
+     * Aplica um filtro aos filhos da referência sendo consultada.
+     * Se houver um índice na chave da propriedade que está sendo consultada, ele será usado
+     * para acelerar a consulta.
+     * @param key Propriedade para testar o valor
+     * @param op Operador a ser usado
+     * @param compare Valor a ser comparado
      */
     filter(key, op, compare) {
         if ((op === "in" || op === "!in") && (!(compare instanceof Array) || compare.length === 0)) {
@@ -883,9 +883,9 @@ export class DataReferenceQuery {
                 options.monitor.remove = true;
             }
         }
-        // Stop realtime results if they are still enabled on a previous .get on this instance
+        // Interrompe os resultados em tempo real se ainda estiverem habilitados em um .get anterior nesta instância
         this.stop();
-        // NOTE: returning promise here, regardless of callback argument. Good argument to refactor method to async/await soon
+        // NOTA: retorna uma promise aqui, independentemente do argumento de retorno de chamada. Bom argumento para refatorar o método para async/await em breve
         const db = this.ref.db;
         return db.storage
             .query(this.ref.path, this[_private], options)

@@ -1,7 +1,7 @@
 export declare class PathReference {
     path: string;
     /**
-     * Creates a reference to a path that can be stored in the database. Use this to create cross-references to other data in your database
+     * Cria uma referência a um caminho que pode ser armazenado no banco de dados. Use isso para criar referências cruzadas para outros dados em seu banco de dados.
      * @param path
      */
     constructor(path: string);
@@ -20,69 +20,69 @@ export declare class PathInfo {
     childPath(childKey: string | number | Array<string | number>): string;
     get pathKeys(): Array<string | number>;
     /**
-     * If varPath contains variables or wildcards, it will return them with the values found in fullPath
-     * @param {string} varPath path containing variables such as * and $name
-     * @param {string} fullPath real path to a node
-     * @returns {{ [index: number]: string|number, [variable: string]: string|number }} returns an array-like object with all variable values. All named variables are also set on the array by their name (eg vars.uid and vars.$uid)
+     * Se varPath contiver variáveis ou wildcards, ele as retornará com os valores encontrados em fullPath
+     * @param {string} varPath caminho contendo variáveis como * e $name
+     * @param {string} fullPath caminho real para um nó
+     * @returns {{ [index: number]: string|number, [variable: string]: string|number }} retorna um objeto semelhante a uma matriz com todos os valores de variáveis. Todas as variáveis nomeadas também são definidas no objeto pelo nome delas (por exemplo, vars.uid e vars.$uid)
      * @example
      * PathInfo.extractVariables('users/$uid/posts/$postid', 'users/ewout/posts/post1/title') === {
      *  0: 'ewout',
      *  1: 'post1',
-     *  uid: 'ewout', // or $uid
-     *  postid: 'post1' // or $postid
+     *  uid: 'ewout', // ou $uid
+     *  postid: 'post1' // ou $postid
      * };
      *
      * PathInfo.extractVariables('users/*\/posts/*\/$property', 'users/ewout/posts/post1/title') === {
      *  0: 'ewout',
      *  1: 'post1',
      *  2: 'title',
-     *  property: 'title' // or $property
+     *  property: 'title' // ou $property
      * };
      *
      * PathInfo.extractVariables('users/$user/friends[*]/$friend', 'users/dora/friends[4]/diego') === {
      *  0: 'dora',
      *  1: 4,
      *  2: 'diego',
-     *  user: 'dora', // or $user
-     *  friend: 'diego' // or $friend
+     *  user: 'dora', // ou $user
+     *  friend: 'diego' // ou $friend
      * };
      */
     static extractVariables(varPath: string, fullPath: string): any;
     /**
-     * If varPath contains variables or wildcards, it will return a path with the variables replaced by the keys found in fullPath.
+     * Se varPath contiver variáveis ou wildcards, ele retornará um caminho com as variáveis substituídas pelas chaves encontradas em fullPath.
      * @example
      * PathInfo.fillVariables('users/$uid/posts/$postid', 'users/ewout/posts/post1/title') === 'users/ewout/posts/post1'
      */
     static fillVariables(varPath: string, fullPath: string): string;
     /**
-     * Replaces all variables in a path with the values in the vars argument
-     * @param varPath path containing variables
-     * @param vars variables object such as one gotten from PathInfo.extractVariables
+     * Substitui todas as variáveis em um caminho pelos valores no argumento vars
+     * @param varPath caminho contendo variáveis
+     * @param vars objeto de variáveis, como aquele obtido a partir de PathInfo.extractVariables
      */
     static fillVariables2(varPath: string, vars: any): string;
     /**
-     * Checks if a given path matches this path, eg "posts/*\/title" matches "posts/12344/title" and "users/123/name" matches "users/$uid/name"
+     * Verifica se um caminho dado corresponde a este caminho, por exemplo, "posts/*\/title" corresponde a "posts/12344/title" e "users/123/name" corresponde a "users/$uid/name"
      */
     equals(otherPath: string | PathInfo): boolean;
     /**
-     * Checks if a given path is an ancestor, eg "posts" is an ancestor of "posts/12344/title"
+     * Verifica se um caminho dado é um ancestral, por exemplo, "posts" é um ancestral de "posts/12344/title"
      */
     isAncestorOf(descendantPath: string | PathInfo): boolean;
     /**
-     * Checks if a given path is a descendant, eg "posts/1234/title" is a descendant of "posts"
+     * Verifica se um caminho dado é um descendente, por exemplo, "posts/1234/title" é um descendente de "posts"
      */
     isDescendantOf(ancestorPath: string | PathInfo): boolean;
     /**
-     * Checks if the other path is on the same trail as this path. Paths on the same trail if they share a
-     * common ancestor. Eg: "posts" is on the trail of "posts/1234/title" and vice versa.
+     * Verifica se o outro caminho está na mesma trilha que este caminho. Caminhos estão na mesma trilha se compartilharem um
+     * ancestral comum. Por exemplo, "posts" está na trilha de "posts/1234/title" e vice-versa.
      */
     isOnTrailOf(otherPath: string | PathInfo): boolean;
     /**
-     * Checks if a given path is a direct child, eg "posts/1234/title" is a child of "posts/1234"
+     * Verifica se um determinado caminho é um filho direto, por exemplo, "posts/1234/title" é um filho de "posts/1234"
      */
     isChildOf(otherPath: string | PathInfo): boolean;
     /**
-     * Checks if a given path is its parent, eg "posts/1234" is the parent of "posts/1234/title"
+     * Verifica se um determinado caminho é seu pai, por exemplo, "posts/1234" é o pai de "posts/1234/title"
      */
     isParentOf(otherPath: string | PathInfo): boolean;
 }
