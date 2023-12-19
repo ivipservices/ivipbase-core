@@ -24,7 +24,7 @@
 		"./dist/esm/process/index.js": "./dist/esm/process/browser.js"
 	},
 	"private": false,
-	"repository": "github:ivipcoin/ivipbase-core",
+	"repository": "github:ivipservices/ivipbase-core",
 	"scripts": {
 		"dev": "nodemon ./test/index.ts",
 		"lint": "eslint .",
