@@ -21,7 +21,7 @@ export declare class DataBaseSettings {
     info: string;
     constructor(options: Partial<DataBaseSettings>);
 }
-export declare class DataBase extends SimpleEventEmitter {
+export declare abstract class DataBase extends SimpleEventEmitter {
     protected _ready: boolean;
     storage: Api;
     /**
