@@ -12,7 +12,7 @@ export declare function encodeString(str: string): Uint8Array;
  */
 export declare function decodeString(buffer: TypedArrayLike | TypedArray | number[]): string;
 export declare function concatTypedArrays<T extends TypedArray>(a: T, b: TypedArray): T;
-export declare function cloneObject(original: any, stack?: any[]): any;
+export declare function cloneObject(original: any, stack?: any[]): typeof original;
 export declare function valuesAreEqual(val1: any, val2: any): boolean;
 export declare class ObjectDifferences {
     added: ObjectProperty[];

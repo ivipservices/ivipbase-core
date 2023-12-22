@@ -234,7 +234,7 @@ export function concatTypedArrays<T extends TypedArray>(a: T, b: TypedArray) {
 	return c;
 }
 
-export function cloneObject(original: any, stack: any[] = []) {
+export function cloneObject(original: any, stack: any[] = []): typeof original {
 	if (original?.constructor?.name === "DataSnapshot") {
 		throw new TypeError(`Object to clone is a DataSnapshot (path "${(original as DataSnapshot).ref.path}")`);
 	}
@@ -443,11 +443,11 @@ export function getMutations(oldVal: any, newVal: any, sortedResults = false): A
 }
 
 export function getChildValues(childKey: ObjectProperty, oldValue: any, newValue: any) {
-	oldValue = oldValue === null ? null : oldValue[childKey];
+	oldValue = !oldValue || !oldValue[childKey] ? null : oldValue[childKey];
 	if (typeof oldValue === "undefined") {
 		oldValue = null;
 	}
-	newValue = newValue === null ? null : newValue[childKey];
+	newValue = !newValue || !newValue[childKey] ? null : newValue[childKey];
 	if (typeof newValue === "undefined") {
 		newValue = null;
 	}

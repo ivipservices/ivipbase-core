@@ -455,11 +455,11 @@ function getMutations(oldVal, newVal, sortedResults = false) {
 }
 exports.getMutations = getMutations;
 function getChildValues(childKey, oldValue, newValue) {
-    oldValue = oldValue === null ? null : oldValue[childKey];
+    oldValue = !oldValue || !oldValue[childKey] ? null : oldValue[childKey];
     if (typeof oldValue === "undefined") {
         oldValue = null;
     }
-    newValue = newValue === null ? null : newValue[childKey];
+    newValue = !newValue || !newValue[childKey] ? null : newValue[childKey];
     if (typeof newValue === "undefined") {
         newValue = null;
     }

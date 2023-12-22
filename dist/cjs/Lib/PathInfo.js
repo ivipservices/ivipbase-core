@@ -61,7 +61,7 @@ class PathInfo {
     child(childKey) {
         if (typeof childKey === "string") {
             if (childKey.length === 0) {
-                throw new Error(`child key for path "${this.path}" cannot be empty`);
+                return this;
             }
             // Permitir a expansão de um caminho filho (por exemplo, "user/name") para o equivalente a `child('user').child('name')`
             const keys = getPathKeys(childKey);
@@ -79,7 +79,7 @@ class PathInfo {
                     throw new Error(`child key "${key}" for path "${this.path}" is too long. Max key length is 128`);
                 }
                 if (index !== 0 && key.length === 0) {
-                    throw new Error(`child key for path "${this.path}" cannot be empty`);
+                    return this;
                 }
             });
             childKey = keys;
