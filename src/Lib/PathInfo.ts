@@ -43,6 +43,12 @@ export class PathInfo {
 		} else {
 			this.keys = [""];
 		}
+
+		this.keys.splice(
+			0,
+			this.keys.findIndex((k) => String(k).trim() !== ""),
+		);
+
 		this.path = (this.keys.reduce((path, key, i) => (i === 0 ? `${key}` : typeof key === "string" ? `${path}/${key}` : `${path}[${key}]`), "") as string).replace(/^\//gi, "");
 	}
 	get key(): string | number | null {
@@ -61,7 +67,7 @@ export class PathInfo {
 	child(childKey: string | number | Array<string | number>) {
 		if (typeof childKey === "string") {
 			if (childKey.length === 0) {
-				return this;
+				throw new Error(`child key for path "${this.path}" cannot be empty`);
 			}
 			// Permitir a expansão de um caminho filho (por exemplo, "user/name") para o equivalente a `child('user').child('name')`
 			const keys = getPathKeys(childKey);
@@ -79,7 +85,7 @@ export class PathInfo {
 					throw new Error(`child key "${key}" for path "${this.path}" is too long. Max key length is 128`);
 				}
 				if (index !== 0 && key.length === 0) {
-					return this;
+					throw new Error(`child key for path "${this.path}" cannot be empty`);
 				}
 			});
 			childKey = keys;

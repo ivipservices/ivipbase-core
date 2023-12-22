@@ -31,10 +31,11 @@
 		"lint:fix": "eslint . --fix",
 		"build": "npm run build:clean && npm run build:esm && npm run build:cjs && npm run build:packages && echo Done!",
 		"build:clean": "rimraf dist",
-		"build:esm": "tsc -p tsconfig.json && npx tsc-esm-fix ---target='dist/esm'",
+		"build:esm": "tsc -p tsconfig-esm.json && npx tsc-esm-fix ---target='dist/esm'",
 		"build:cjs": "tsc -p tsconfig-cjs.json",
 		"build:packages": "bash ./create-package-files",
-		"npm:publish": "npm run build && npm pack && npm publish --access public"
+		"npm:publish": "npm run build && npm pack && npm publish --access public",
+		"npm:link": "npm link"
 	},
 	"keywords": [
 		"iVipBase",
