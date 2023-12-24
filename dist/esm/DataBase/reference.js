@@ -353,6 +353,24 @@ export class DataReference {
                     }
                 });
             }
+            if (event === "value") {
+                let cache;
+                const observeSubscribe = this.observe().subscribe((value) => {
+                    const ref = this.db.ref(this.path);
+                    cache = !cache ? value : cache;
+                    const values = {
+                        previous: this.db.types.deserialize(this.path, cache),
+                        current: this.db.types.deserialize(this.path, value),
+                    };
+                    const isRemoved = values.current === null;
+                    const snap = new DataSnapshot(ref, values.current, isRemoved, values.previous, {});
+                    eventPublisher.publish(snap);
+                });
+                eventPublisher.start(() => {
+                    return observeSubscribe.unsubscribe();
+                });
+                return;
+            }
             const advancedOptions = typeof callback === "object" ? callback : { newOnly: !callback }; // newOnly: se o retorno de chamada não for 'truthy', poderia alterar isso para (typeof callback !== 'function' && callback !== true), mas isso quebraria o código do cliente que usa um argumento truthy.
             if (typeof advancedOptions.newOnly !== "boolean") {
                 advancedOptions.newOnly = false;
@@ -399,12 +417,12 @@ export class DataReference {
                 // ele disparará eventos para os valores atuais agora.
                 // Caso contrário, espera-se que o método .subscribe seja usado, que então
                 // só será chamado para eventos futuros.
-                if (event === "value") {
-                    this.get((snap) => {
-                        eventPublisher.publish(snap);
-                    });
-                }
-                else if (event === "child_added") {
+                // if (event === "value") {
+                // 	this.get((snap) => {
+                // 		eventPublisher.publish(snap);
+                // 	});
+                // } else
+                if (event === "child_added") {
                     this.get((snap) => {
                         const val = snap.val();
                         if (val === null || typeof val !== "object") {

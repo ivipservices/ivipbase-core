@@ -123,9 +123,7 @@ class EventStream {
             return Promise.resolve(ret);
         };
         this.unsubscribe = (callback) => {
-            const remove = callback
-                ? subscribers.filter((sub) => sub.callback === callback)
-                : subscribers;
+            const remove = callback ? subscribers.filter((sub) => sub.callback === callback) : subscribers;
             remove.forEach((sub) => {
                 const i = subscribers.indexOf(sub);
                 subscribers.splice(i, 1);
