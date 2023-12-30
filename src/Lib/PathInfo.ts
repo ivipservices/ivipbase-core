@@ -100,6 +100,24 @@ export class PathInfo {
 		return this.keys;
 	}
 
+	static variablesKeys(varPath: string): (string | number)[] {
+		let count = 0;
+		const variables: (string | number)[] = [];
+		if (!varPath.includes("*") && !varPath.includes("$")) {
+			return variables;
+		}
+		getPathKeys(varPath).forEach((key) => {
+			if (key === "*") {
+				variables.push(count++);
+			} else if (typeof key === "string" && key[0] === "$") {
+				variables.push(count++);
+				variables.push(key);
+				variables.push(key.slice(1));
+			}
+		});
+		return variables;
+	}
+
 	/**
 	 * Se varPath contiver variáveis ou wildcards, ele as retornará com os valores encontrados em fullPath
 	 * @param {string} varPath caminho contendo variáveis como * e $name
@@ -128,21 +146,21 @@ export class PathInfo {
 	 *  friend: 'diego' // ou $friend
 	 * };
 	 */
-	static extractVariables(varPath: string, fullPath: string): any {
-		if (!varPath.includes("*") && !varPath.includes("$")) {
-			return [];
-		}
-		// if (!this.equals(fullPath)) {
-		//     throw new Error(`path does not match with the path of this PathInfo instance: info.equals(path) === false!`)
-		// }
-		const keys = getPathKeys(varPath);
-		const pathKeys = getPathKeys(fullPath);
+	static extractVariables(varPath: string, fullPath: string): { readonly length: number; [variable: string]: string | number } {
 		let count = 0;
 		const variables = {
 			get length() {
 				return count;
 			},
 		} as { readonly length: number; [variable: string]: string | number };
+		if (!varPath.includes("*") && !varPath.includes("$")) {
+			return variables;
+		}
+		if (!this.get(varPath).equals(this.fillVariables(varPath, fullPath))) {
+			return variables;
+		}
+		const keys = getPathKeys(varPath);
+		const pathKeys = getPathKeys(fullPath);
 		keys.forEach((key, index) => {
 			const pathKey = pathKeys[index];
 			if (key === "*") {

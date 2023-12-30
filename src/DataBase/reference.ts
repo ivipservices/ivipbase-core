@@ -508,6 +508,12 @@ export class DataReference<T = any> {
 			}
 
 			if (event === "value") {
+				if (this.isWildcardPath) {
+					const err = `Cannot get value of wildcard path "/${this.path}".`;
+					eventPublisher.cancel(err);
+					throw new Error(err);
+				}
+
 				let cache: any;
 				const observeSubscribe = this.observe().subscribe((value) => {
 					const ref = this.db.ref(this.path);
