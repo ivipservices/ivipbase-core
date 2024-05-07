@@ -22,7 +22,7 @@ function getPathKeys(path: string): Array<string | number> {
 }
 
 export class PathInfo {
-	static get(path: string | Array<string | number>): PathInfo {
+	static get(path: string | Array<string | number | PathInfo>): PathInfo {
 		return new PathInfo(path);
 	}
 	static getChildPath(path: string, childKey: string | number): string {

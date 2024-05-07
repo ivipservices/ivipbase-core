@@ -7,7 +7,7 @@ export declare class PathReference {
     constructor(path: string);
 }
 export declare class PathInfo {
-    static get(path: string | Array<string | number>): PathInfo;
+    static get(path: string | Array<string | number | PathInfo>): PathInfo;
     static getChildPath(path: string, childKey: string | number): string;
     static getPathKeys(path: string): Array<string | number>;
     readonly path: string;
