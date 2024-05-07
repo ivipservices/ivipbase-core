@@ -12,13 +12,14 @@ export declare class PathInfo {
     static getPathKeys(path: string): Array<string | number>;
     readonly path: string;
     readonly keys: Array<string | number>;
-    constructor(path: string | Array<string | number>);
+    constructor(path: string | Array<string | number | PathInfo>);
     get key(): string | number | null;
     get parent(): PathInfo | null;
     get parentPath(): string | null;
     child(childKey: string | number | Array<string | number>): PathInfo;
     childPath(childKey: string | number | Array<string | number>): string;
     get pathKeys(): Array<string | number>;
+    static variablesKeys(varPath: string): (string | number)[];
     /**
      * Se varPath contiver variáveis ou wildcards, ele as retornará com os valores encontrados em fullPath
      * @param {string} varPath caminho contendo variáveis como * e $name
@@ -47,7 +48,10 @@ export declare class PathInfo {
      *  friend: 'diego' // ou $friend
      * };
      */
-    static extractVariables(varPath: string, fullPath: string): any;
+    static extractVariables(varPath: string, fullPath: string): {
+        readonly length: number;
+        [variable: string]: string | number;
+    };
     /**
      * Se varPath contiver variáveis ou wildcards, ele retornará um caminho com as variáveis substituídas pelas chaves encontradas em fullPath.
      * @example

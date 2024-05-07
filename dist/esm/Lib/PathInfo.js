@@ -33,7 +33,12 @@ export class PathInfo {
             this.keys = getPathKeys(path);
         }
         else if (path instanceof Array) {
-            this.keys = path;
+            this.keys = Array.prototype.concat.apply([], path
+                .map((k) => (typeof k === "string" ? getPathKeys(k) : k instanceof PathInfo ? k.keys : [k]))
+                .map((k) => {
+                k.splice(0, k.findIndex((k) => String(k).trim() !== ""));
+                return k;
+            }));
         }
         else {
             this.keys = [""];
@@ -90,6 +95,24 @@ export class PathInfo {
     get pathKeys() {
         return this.keys;
     }
+    static variablesKeys(varPath) {
+        let count = 0;
+        const variables = [];
+        if (!varPath.includes("*") && !varPath.includes("$")) {
+            return variables;
+        }
+        getPathKeys(varPath).forEach((key) => {
+            if (key === "*") {
+                variables.push(count++);
+            }
+            else if (typeof key === "string" && key[0] === "$") {
+                variables.push(count++);
+                variables.push(key);
+                variables.push(key.slice(1));
+            }
+        });
+        return variables;
+    }
     /**
      * Se varPath contiver variáveis ou wildcards, ele as retornará com os valores encontrados em fullPath
      * @param {string} varPath caminho contendo variáveis como * e $name
@@ -119,20 +142,20 @@ export class PathInfo {
      * };
      */
     static extractVariables(varPath, fullPath) {
-        if (!varPath.includes("*") && !varPath.includes("$")) {
-            return [];
-        }
-        // if (!this.equals(fullPath)) {
-        //     throw new Error(`path does not match with the path of this PathInfo instance: info.equals(path) === false!`)
-        // }
-        const keys = getPathKeys(varPath);
-        const pathKeys = getPathKeys(fullPath);
         let count = 0;
         const variables = {
             get length() {
                 return count;
             },
         };
+        if (!varPath.includes("*") && !varPath.includes("$")) {
+            return variables;
+        }
+        if (!this.get(varPath).equals(this.fillVariables(varPath, fullPath))) {
+            return variables;
+        }
+        const keys = getPathKeys(varPath);
+        const pathKeys = getPathKeys(fullPath);
         keys.forEach((key, index) => {
             const pathKey = pathKeys[index];
             if (key === "*") {

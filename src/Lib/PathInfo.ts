@@ -35,11 +35,22 @@ export class PathInfo {
 
 	readonly path: string;
 	readonly keys: Array<string | number>;
-	constructor(path: string | Array<string | number>) {
+	constructor(path: string | Array<string | number | PathInfo>) {
 		if (typeof path === "string") {
 			this.keys = getPathKeys(path);
 		} else if (path instanceof Array) {
-			this.keys = path;
+			this.keys = Array.prototype.concat.apply(
+				[],
+				path
+					.map((k) => (typeof k === "string" ? getPathKeys(k) : k instanceof PathInfo ? k.keys : [k]))
+					.map((k) => {
+						k.splice(
+							0,
+							k.findIndex((k) => String(k).trim() !== ""),
+						);
+						return k;
+					}),
+			);
 		} else {
 			this.keys = [""];
 		}
