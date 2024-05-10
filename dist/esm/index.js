@@ -11,6 +11,7 @@ export { EventStream, EventPublisher, EventSubscription } from "./Lib/Subscripti
 export * as Transport from "./Lib/Transport.js";
 export { default as TypeMappings } from "./Lib/TypeMappings.js";
 export * as Utils from "./Lib/Utils.js";
+export * from "./Lib/SimpleCache.js";
 export { ascii85 } from "./Lib/Ascii85.js";
 export { default as SimpleEventEmitter } from "./Lib/SimpleEventEmitter.js";
 export { SchemaDefinition } from "./Lib/Schema.js";

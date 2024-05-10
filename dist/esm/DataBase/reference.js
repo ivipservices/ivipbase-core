@@ -337,8 +337,8 @@ export class DataReference {
                     }
                 }
                 eventPublisher.publish(callbackObject);
-                if (eventContext?.acebase_cursor) {
-                    this.cursor = eventContext.acebase_cursor;
+                if (eventContext?.database_cursor) {
+                    this.cursor = eventContext.database_cursor;
                 }
             },
         };
@@ -504,8 +504,8 @@ export class DataReference {
             }
             const value = this.db.types.deserialize(this.path, result.value);
             const snapshot = new DataSnapshot(this, value, undefined, undefined, result.context);
-            if (result.context?.acebase_cursor) {
-                this.cursor = result.context.acebase_cursor;
+            if (result.context?.database_cursor) {
+                this.cursor = result.context.database_cursor;
             }
             return snapshot;
         });

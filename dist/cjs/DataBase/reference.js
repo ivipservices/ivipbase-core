@@ -345,8 +345,8 @@ class DataReference {
                     }
                 }
                 eventPublisher.publish(callbackObject);
-                if (eventContext === null || eventContext === void 0 ? void 0 : eventContext.acebase_cursor) {
-                    this.cursor = eventContext.acebase_cursor;
+                if (eventContext === null || eventContext === void 0 ? void 0 : eventContext.database_cursor) {
+                    this.cursor = eventContext.database_cursor;
                 }
             },
         };
@@ -513,8 +513,8 @@ class DataReference {
             }
             const value = this.db.types.deserialize(this.path, result.value);
             const snapshot = new snapshot_1.DataSnapshot(this, value, undefined, undefined, result.context);
-            if ((_a = result.context) === null || _a === void 0 ? void 0 : _a.acebase_cursor) {
-                this.cursor = result.context.acebase_cursor;
+            if ((_a = result.context) === null || _a === void 0 ? void 0 : _a.database_cursor) {
+                this.cursor = result.context.database_cursor;
             }
             return snapshot;
         });

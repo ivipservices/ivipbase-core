@@ -22,6 +22,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -59,6 +62,7 @@ exports.Transport = __importStar(require("./Lib/Transport"));
 var TypeMappings_1 = require("./Lib/TypeMappings");
 Object.defineProperty(exports, "TypeMappings", { enumerable: true, get: function () { return __importDefault(TypeMappings_1).default; } });
 exports.Utils = __importStar(require("./Lib/Utils"));
+__exportStar(require("./Lib/SimpleCache"), exports);
 var Ascii85_1 = require("./Lib/Ascii85");
 Object.defineProperty(exports, "ascii85", { enumerable: true, get: function () { return Ascii85_1.ascii85; } });
 var SimpleEventEmitter_1 = require("./Lib/SimpleEventEmitter");

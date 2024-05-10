@@ -24,6 +24,8 @@ export { default as TypeMappings, TypeMappingOptions } from "./Lib/TypeMappings"
 
 export * as Utils from "./Lib/Utils";
 
+export * from "./Lib/SimpleCache";
+
 export { ascii85 } from "./Lib/Ascii85";
 
 export { default as SimpleEventEmitter } from "./Lib/SimpleEventEmitter";

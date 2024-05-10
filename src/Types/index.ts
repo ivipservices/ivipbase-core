@@ -107,11 +107,11 @@ export interface IObservableLike<T> {
 }
 
 export interface SimpleCacheOptions {
-	/** The number of seconds to keep items cached after their last update */
-	expirySeconds?: number;
-	/** Whether to deep clone the stored values to protect them from accidental adjustments */
+	/** O número de segundos para manter os itens em cache após sua última atualização */
+	expirySeconds: number;
+	/** Indica se deve-se clonar profundamente os valores armazenados para protegê-los de ajustes acidentais */
 	cloneValues?: boolean;
-	/** Maximum amount of entries to keep in cache */
+	/** Quantidade máxima de entradas para manter em cache */
 	maxEntries?: number;
 }
 
