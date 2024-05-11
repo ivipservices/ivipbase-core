@@ -128,17 +128,6 @@ export interface ForEachIteratorResult {
 	processed: number;
 }
 
-export interface QueryFilter {
-	key: string | number;
-	op: QueryOperator;
-	compare: any;
-}
-
-export interface QueryOrder {
-	key: string; // TODO: implement sorting on array index
-	ascending: boolean;
-}
-
 export interface RealtimeQueryEvent {
 	name: string;
 	snapshot?: DataSnapshot;
@@ -154,31 +143,6 @@ export interface QueryRemoveResult {
 	error?: Error;
 	ref: DataReference;
 }
-
-export type StandardQueryOperator =
-	| "<"
-	| "<="
-	| "=="
-	| "!="
-	| ">"
-	| ">="
-	| "exists"
-	| "!exists"
-	| "between"
-	| "!between"
-	| "like"
-	| "!like"
-	| "matches"
-	| "!matches"
-	| "in"
-	| "!in"
-	| "has"
-	| "!has"
-	| "contains"
-	| "!contains";
-export type FullTextQueryOperator = "fulltext:contains" | "fulltext:!contains";
-export type GeoQueryOperator = "geo:nearby";
-export type QueryOperator = StandardQueryOperator | FullTextQueryOperator | GeoQueryOperator;
 
 export interface SimpleEventEmitterProperty {
 	stop: () => void;
