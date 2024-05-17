@@ -26,7 +26,7 @@ export class PathInfo {
         return PathInfo.get(path).child(childKey).path;
     }
     static getPathKeys(path) {
-        return getPathKeys(path);
+        return getPathKeys(path).filter((key, i) => !(key === "" && i === 0));
     }
     constructor(path) {
         if (typeof path === "string") {
@@ -236,7 +236,7 @@ export class PathInfo {
      */
     equals(otherPath) {
         const other = otherPath instanceof PathInfo ? otherPath : new PathInfo(otherPath);
-        if (this.path === other.path) {
+        if (this.path.replace(/\/$/gi, "") === other.path.replace(/\/$/gi, "")) {
             return true;
         } // they are identical
         if (this.keys.length !== other.keys.length) {

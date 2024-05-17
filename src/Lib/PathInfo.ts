@@ -30,7 +30,7 @@ export class PathInfo {
 		return PathInfo.get(path).child(childKey).path;
 	}
 	static getPathKeys(path: string): Array<string | number> {
-		return getPathKeys(path);
+		return getPathKeys(path).filter((key, i) => !(key === "" && i === 0));
 	}
 
 	readonly path: string;
@@ -251,7 +251,7 @@ export class PathInfo {
 	 */
 	equals(otherPath: string | PathInfo): boolean {
 		const other = otherPath instanceof PathInfo ? otherPath : new PathInfo(otherPath);
-		if (this.path === other.path) {
+		if (this.path.replace(/\/$/gi, "") === other.path.replace(/\/$/gi, "")) {
 			return true;
 		} // they are identical
 		if (this.keys.length !== other.keys.length) {
