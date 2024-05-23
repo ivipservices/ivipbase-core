@@ -336,7 +336,7 @@ export class ObjectDifferences {
     }
 }
 export const isDate = function (value) {
-    return value instanceof Date || (typeof value === "string" && !isNaN(Date.parse(value)));
+    return value instanceof Date || (typeof value === "string" && /^\d+$/.test(value) !== true && !isNaN(Date.parse(value)));
 };
 export function compareValues(oldVal, newVal, sortedResults = false) {
     const voids = [undefined, null];
