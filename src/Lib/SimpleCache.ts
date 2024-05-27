@@ -86,4 +86,15 @@ export class SimpleCache<K, V> {
 			}
 		});
 	}
+	keys() {
+		return Array.from(this.cache.keys());
+	}
+	values() {
+		return Array.from(this.cache.values()).map((v) => v.value);
+	}
+	forEach(callback: (value: V, key: K, cache: SimpleCache<K, V>) => void) {
+		this.cache.forEach((entry, key) => {
+			callback(entry.value, key, this);
+		});
+	}
 }

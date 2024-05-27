@@ -14,5 +14,8 @@ export declare class SimpleCache<K, V> {
     set(key: K, value: V): void;
     remove(key: K): void;
     cleanUp(): void;
+    keys(): K[];
+    values(): V[];
+    forEach(callback: (value: V, key: K, cache: SimpleCache<K, V>) => void): void;
 }
 //# sourceMappingURL=SimpleCache.d.ts.map
